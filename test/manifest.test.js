@@ -14,8 +14,11 @@ const manifest = JSON.parse(
   await readFile(new URL('../gladys-assistant-integration.json', import.meta.url), 'utf8'),
 );
 
-// Actions registered outside the blueprints (see index.js).
-const REGISTRY_LEVEL_ACTIONS = ['identify'];
+// Actions registered outside the blueprints (see index.js). The Strava
+// integration has none: `test_connection` lives on the latestActivity
+// blueprint, and OAuth2 (`onOAuthAuthorizeUrl`/`onOAuthCallback`) is not a
+// manifest `actions` entry.
+const REGISTRY_LEVEL_ACTIONS = [];
 
 test('every manifest action has a registered handler', () => {
   const handled = new Set([
@@ -57,7 +60,10 @@ test('config_schema defaults stay consistent with DEFAULT_CONFIG', () => {
 
 test('section fields are purely presentational', () => {
   const sections = manifest.config_schema.filter((f) => f.type === 'section');
-  assert.ok(sections.length > 0, 'the template demonstrates at least one section block');
+  assert.ok(
+    sections.length > 0,
+    'the onboarding section explains how to create a Strava API application',
+  );
   for (const section of sections) {
     // A section stores NO value: declaring `required`, `default` or
     // `placeholder` on it rejects the manifest, and its key must never leak
@@ -80,19 +86,43 @@ test('section fields are purely presentational', () => {
   }
 });
 
-test('dynamic selects declare a source and no static options', () => {
-  const allFields = [
-    ...manifest.config_schema,
-    ...(manifest.actions ?? []).flatMap((a) => a.fields ?? []),
-  ];
-  const dynamicSelects = allFields.filter((f) => f.source !== undefined);
-  assert.ok(dynamicSelects.length > 0, 'the template demonstrates a dynamic select');
-  for (const field of dynamicSelects) {
-    assert.equal(field.source, 'devices', 'the only core-defined source in V1 is "devices"');
-    assert.equal(
-      field.options,
-      undefined,
-      `field "${field.key}": declaring source and options together rejects the manifest`,
-    );
+test('the OAuth2 field is well-formed and required credentials have no default', () => {
+  const oauthFields = manifest.config_schema.filter((f) => f.type === 'oauth2');
+  assert.equal(
+    oauthFields.length,
+    1,
+    'exactly one oauth2 field drives the "Connect to Strava" button',
+  );
+  assert.ok(oauthFields[0].label?.en, 'the oauth2 field needs an English label');
+
+  for (const key of ['client_id', 'client_secret']) {
+    const field = manifest.config_schema.find((f) => f.key === key);
+    assert.ok(field, `manifest must declare the "${key}" field`);
+    assert.equal(field.required, true, `"${key}" is required to build the Strava authorize URL`);
+    assert.equal(field.default, undefined, `"${key}" is user-specific and must have no default`);
+  }
+
+  assert.equal(
+    manifest.config_schema.find((f) => f.key === 'client_secret').type,
+    'secret',
+    'the client secret must use the "secret" field type, never plain "string"',
+  );
+});
+
+test('every device feature category declared by a blueprint is a recognized SDK constant', async () => {
+  const { DEVICE_FEATURE_CATEGORIES } = await import('@gladysassistant/integration-sdk');
+  const knownCategories = new Set(Object.values(DEVICE_FEATURE_CATEGORIES));
+  const { normalizeConfig } = await import('../src/config.js');
+  const { createFakeGladys } = await import('./helpers/fakeGladys.js');
+  const gladys = createFakeGladys();
+  const config = normalizeConfig();
+  for (const bp of DEVICE_BLUEPRINTS) {
+    const device = bp.buildDevice(gladys, config);
+    for (const feature of device.features) {
+      assert.ok(
+        knownCategories.has(feature.category),
+        `${bp.key}: unknown feature category "${feature.category}"`,
+      );
+    }
   }
 });

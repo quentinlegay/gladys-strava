@@ -7,21 +7,19 @@
 // `gladys.onConfigUpdated()`.
 //
 // This module only provides defaults and normalizes the received object, so the
-// rest of the code never has to deal with `undefined`.
+// rest of the code never has to deal with `undefined`. Note that the OAuth
+// tokens (`access_token`, `refresh_token`, `expires_at`) and the athlete
+// identity (`athlete_id`, `athlete_name`) are stored as config keys OUTSIDE the
+// manifest `config_schema` (see src/strava/auth.js): they flow through this
+// same object but have no default here, they are simply absent until the user
+// connects.
 // -----------------------------------------------------------------------------
 
 // Defaults: they MUST stay consistent with the `default` values declared in the
 // `config_schema` of the manifest.
 export const DEFAULT_CONFIG = {
-  latitude: 48.8566, // Paris
-  longitude: 2.3522,
-  unit: 'celsius', // 'celsius' | 'fahrenheit'
-  poll_frequency: 300, // seconds, how often sensors are refreshed
-  // Reserved key (NOT in config_schema): because the manifest declares both
-  // 'local' and 'cloud' in its `transports` field, Gladys shows a standard
-  // "Prefer the local connection" toggle and sends the user's choice here.
-  // Read-only for the integration; defaults to true.
-  GLADYS_PREFER_LOCAL: true,
+  unit_system: 'metric', // 'metric' | 'imperial'
+  poll_frequency: 900, // seconds, how often activities are refreshed
 };
 
 /**
@@ -33,10 +31,7 @@ export function normalizeConfig(raw = {}) {
     ...DEFAULT_CONFIG,
     ...raw,
     // Force the types: config may arrive as strings from a form.
-    latitude: Number(raw.latitude ?? DEFAULT_CONFIG.latitude),
-    longitude: Number(raw.longitude ?? DEFAULT_CONFIG.longitude),
     poll_frequency: Number(raw.poll_frequency ?? DEFAULT_CONFIG.poll_frequency),
-    // The preference is a boolean; anything but an explicit false means true.
-    GLADYS_PREFER_LOCAL: raw.GLADYS_PREFER_LOCAL !== false,
+    unit_system: raw.unit_system === 'imperial' ? 'imperial' : 'metric',
   };
 }

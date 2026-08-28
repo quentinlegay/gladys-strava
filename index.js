@@ -1,9 +1,10 @@
 // -----------------------------------------------------------------------------
 // Entry point of the Gladys external integration.
 //
-// Role of this file: wire the SDK to the device catalog (src/devices/). It holds
-// NO hardware logic: all the control "work" lives in the device modules. This
-// file only:
+// Role of this file: wire the SDK to the device catalog (src/devices/) and to
+// the Strava OAuth2 flow (src/strava/). It holds NO Strava-specific logic
+// beyond that wiring: the API calls live in src/strava/, the device payloads
+// in src/devices/. This file only:
 //   1. instantiates the SDK (connection, auth, reconnection: handled for you);
 //   2. registers the event handlers BEFORE connect();
 //   3. connects and publishes the discovered devices.
@@ -15,23 +16,25 @@
 // The SDK reads them automatically: `new GladysIntegration()` is enough.
 // -----------------------------------------------------------------------------
 
+import crypto from 'node:crypto';
 import { GladysIntegration, logger } from '@gladysassistant/integration-sdk';
 import { normalizeConfig } from './src/config.js';
 import {
   DEVICE_BLUEPRINTS,
   buildDiscoveredDevices,
-  buildTransportEntries,
   findBlueprintByDevice,
-  identifyDevice,
 } from './src/devices/index.js';
+import { buildAuthorizeUrl, exchangeCodeForTokens } from './src/strava/api.js';
+import { setTokens, hasStoredTokens } from './src/strava/auth.js';
 
 const gladys = new GladysIntegration();
 
 // Current configuration (hot-reloaded via onConfigUpdated).
 let config = normalizeConfig();
 
-// Cleanup functions for the "push" subscriptions (e.g. the motion sensor).
-let pushCleanups = [];
+// Anti-CSRF token for the OAuth2 round trip, generated per authorize request
+// and checked back on the callback.
+let oauthState;
 
 // --- Discovery: Gladys asks for the list of devices --------------------------
 gladys.onScanRequest(async () => {
@@ -39,31 +42,9 @@ gladys.onScanRequest(async () => {
   await gladys.publishDiscoveredDevices(buildDiscoveredDevices(gladys, config));
 });
 
-// --- Command: the user acts on a controllable feature ------------------------
-gladys.onSetValue(async (device, feature, value) => {
-  logger.info(`onSetValue <- ${feature.external_id} = ${value}`);
-  const blueprint = findBlueprintByDevice(gladys, device);
-  if (!blueprint || typeof blueprint.onSetValue !== 'function') {
-    // Throw: the SDK sends a success:false acknowledgement to Gladys.
-    throw new Error(`No command handler for ${device.external_id}`);
-  }
-  await blueprint.onSetValue(gladys, { device, feature, value, config });
-});
-
-// --- Camera: Gladys needs a FRESH image of a camera device -------------------
-// Triggered by the dashboard live view or a chat intent. The resolved
-// `image/jpg;base64,...` string (≤ 150 KB) is acked back to Gladys; the ack is
-// awaited under 15 s (not the usual 5 s), so a real capture fits.
-gladys.onGetImage(async (device) => {
-  logger.info(`onGetImage <- ${device.external_id}`);
-  const blueprint = findBlueprintByDevice(gladys, device);
-  if (!blueprint || typeof blueprint.onGetImage !== 'function') {
-    throw new Error(`No camera handler for ${device.external_id}`);
-  }
-  return blueprint.onGetImage(gladys, { device, config });
-});
-
 // --- Polling: Gladys asks to refresh a device --------------------------------
+// Both Strava devices are read-only sensors: no onSetValue, no onGetImage,
+// nothing to command, just periodic reads.
 gladys.onPoll(async (device) => {
   const blueprint = findBlueprintByDevice(gladys, device);
   if (!blueprint || typeof blueprint.onPoll !== 'function') {
@@ -83,55 +64,81 @@ for (const blueprint of DEVICE_BLUEPRINTS) {
   }
 }
 
-// The `identify` action targets ONE device chosen by the user, so it is not
-// owned by a single blueprint. Its manifest field declares
-// `"source": "devices"` (SDK v0.7+): instead of static `options`, the
-// Configuration screen fills the select with the integration's own created
-// devices, and the handler receives the chosen external_id as a field value.
-gladys.onAction('identify', (fields) => {
-  logger.info(`Action identify <- ${fields.device}`);
-  return identifyDevice(gladys, fields.device, config);
+// --- OAuth2: the user clicks "Connect to Strava" ------------------------------
+// The manifest declares the `strava_connect` field as `type: "oauth2"`, which
+// renders the "Connect" button. Gladys relays the whole flow: it never talks
+// to Strava itself, it only forwards the authorize URL request and the
+// callback to this integration.
+gladys.onOAuthAuthorizeUrl(async (key, redirectUri) => {
+  if (!config.client_id) {
+    throw new Error('Set the Strava Client ID and save the configuration before connecting.');
+  }
+  oauthState = crypto.randomUUID();
+  logger.info('onOAuthAuthorizeUrl -> building the Strava authorize URL');
+  return buildAuthorizeUrl({ clientId: config.client_id, redirectUri, state: oauthState });
+});
+
+gladys.onOAuthCallback(async (key, { code, state, redirectUri: _redirectUri }) => {
+  if (state !== oauthState) {
+    throw new Error('OAuth state mismatch, please retry the connection.');
+  }
+  logger.info('onOAuthCallback -> exchanging the authorization code for tokens');
+  const tokens = await exchangeCodeForTokens({
+    clientId: config.client_id,
+    clientSecret: config.client_secret,
+    code,
+  });
+  setTokens(tokens);
+
+  const athleteName = tokens.athlete
+    ? [tokens.athlete.firstname, tokens.athlete.lastname].filter(Boolean).join(' ')
+    : undefined;
+
+  await gladys.setConfig({
+    access_token: tokens.access_token,
+    refresh_token: tokens.refresh_token,
+    expires_at: tokens.expires_at,
+    ...(athleteName ? { athlete_name: athleteName } : {}),
+  });
+  config = normalizeConfig(await gladys.getConfig());
+
+  await gladys.setConnectionStatus(true);
+  await gladys.publishDiscoveredDevices(buildDiscoveredDevices(gladys, config));
+  logger.info(`Connected to Strava${athleteName ? ` as ${athleteName}` : ''}.`);
 });
 
 // --- Configuration updated by the user ---------------------------------------
 gladys.onConfigUpdated(async (newConfig) => {
   logger.info('onConfigUpdated -> new configuration received');
   config = normalizeConfig(newConfig);
-  // Re-publish the devices: some properties (unit, frequency) depend on it.
+  // Re-publish the devices: some properties (unit, poll frequency) depend on it.
   // publishDiscoveredDevices is idempotent (upsert by external_id).
   await gladys.publishDiscoveredDevices(buildDiscoveredDevices(gladys, config));
-  // The reserved GLADYS_PREFER_LOCAL key arrives here like any other key:
-  // re-route the dual-channel devices, then reflect the ACTUAL outcome.
-  await publishDeviceTransports();
 });
 
 // --- Connection lifecycle ----------------------------------------------------
 // The SDK itself logs the WebSocket lifecycle (connections, disconnections,
 // reconnection attempts) under the `gladys-sdk` name: no need to log it again
-// here, these handlers only run the integration's own (re)initialization.
+// here, this handler only runs the integration's own (re)initialization.
 gladys.on('connected', async () => {
   try {
-    // 1) Fetch the config filled in by the user.
+    // 1) Fetch the config filled in by the user (client_id/secret, tokens...).
     config = normalizeConfig(await gladys.getConfig());
 
-    // 2) (Re)publish all devices as soon as we are connected.
+    // 2) (Re)publish the devices as soon as we are connected.
     await gladys.publishDiscoveredDevices(buildDiscoveredDevices(gladys, config));
 
-    // 3) Publish the per-device transport badge (cloud/local, dual-channel
-    // devices only). Lightweight channel: on a live switch, call it again
-    // without re-publishing the devices.
-    await publishDeviceTransports();
-
-    // 4) Start the real-time subscriptions ("push" sensors, camera snapshots).
-    stopPushSubscriptions();
-    pushCleanups = DEVICE_BLUEPRINTS.filter((bp) => typeof bp.startPush === 'function').map((bp) =>
-      bp.startPush(gladys, config),
-    );
-
-    // 5) Report the application-level status, shown in the Configuration
-    // screen. Distinct from the container state machine: an integration can
-    // be RUNNING and still disconnected from its third-party service.
-    await gladys.setConnectionStatus(true);
+    // 3) Report the application-level status, shown in the Configuration
+    // screen. An integration can be RUNNING and still not connected to
+    // Strava yet (the user has not clicked "Connect to Strava" so far).
+    if (hasStoredTokens(config)) {
+      await gladys.setConnectionStatus(true);
+    } else {
+      await gladys.setConnectionStatus(false, {
+        en: 'Not connected to Strava yet: use the "Connect to Strava" button in the configuration.',
+        fr: 'Pas encore connecté à Strava : utilisez le bouton « Se connecter à Strava » dans la configuration.',
+      });
+    }
   } catch (err) {
     logger.error('Post-connection initialization failed', err);
     await gladys
@@ -143,43 +150,15 @@ gladys.on('connected', async () => {
   }
 });
 
-gladys.on('disconnected', () => {
-  stopPushSubscriptions();
-});
-
-// Publish the effective transport of every dual-channel device
-// ('local' | 'cloud' | 'unreachable'), rendered as a badge in the Gladys UI.
-// An entry can also flag a degraded state (`{ degraded: true, message }`,
-// SDK v0.7+): the badge keeps its transport color plus an orange dot, and the
-// tooltip shows the reason — see src/devices/plug.js.
-async function publishDeviceTransports() {
-  const entries = buildTransportEntries(gladys, config);
-  if (entries.length > 0) {
-    await gladys.publishTransports(entries);
-  }
-}
-
-function stopPushSubscriptions() {
-  for (const cleanup of pushCleanups) {
-    try {
-      cleanup?.();
-    } catch (err) {
-      logger.error('Push subscription cleanup failed', err);
-    }
-  }
-  pushCleanups = [];
-}
-
 // --- Graceful shutdown -------------------------------------------------------
 // The SDK stops the push subscriptions, disconnects cleanly and exits with
 // code 0 when the supervisor stops the container (SIGTERM/SIGINT).
 gladys.handleShutdown((signal) => {
   logger.info(`Received ${signal} -> graceful shutdown`);
-  stopPushSubscriptions();
 });
 
 // --- Startup -----------------------------------------------------------------
-logger.info('Starting the template integration...');
+logger.info('Starting the Strava integration...');
 gladys.connect().catch((err) => {
   logger.error('Initial connection failed', err);
   process.exit(1);

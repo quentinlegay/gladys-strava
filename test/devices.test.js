@@ -1,23 +1,33 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  DEVICE_FEATURE_CATEGORIES,
-  DEVICE_FEATURE_TYPES,
-  DEVICE_TRANSPORTS,
-} from '@gladysassistant/integration-sdk';
-import {
   DEVICE_BLUEPRINTS,
   buildDiscoveredDevices,
-  buildTransportEntries,
   findBlueprintByDevice,
-  identifyDevice,
 } from '../src/devices/index.js';
-import { simulateLanSession } from '../src/devices/plug.js';
 import { normalizeConfig } from '../src/config.js';
 import { createFakeGladys } from './helpers/fakeGladys.js';
+import { setTokens, clearTokens } from '../src/strava/auth.js';
+import { clearActivitiesCache } from '../src/strava/activities.js';
 
 const gladys = createFakeGladys();
 const config = normalizeConfig();
+
+const realFetch = globalThis.fetch;
+function withStravaSession(activitiesResponse) {
+  setTokens({
+    access_token: 'fake-token',
+    refresh_token: 'fake-refresh',
+    expires_at: Math.floor(Date.now() / 1000) + 3600,
+  });
+  clearActivitiesCache();
+  globalThis.fetch = async () => ({ ok: true, json: async () => activitiesResponse });
+}
+function endStravaSession() {
+  globalThis.fetch = realFetch;
+  clearTokens();
+  clearActivitiesCache();
+}
 
 test('every blueprint exposes the required shape', () => {
   for (const bp of DEVICE_BLUEPRINTS) {
@@ -34,6 +44,9 @@ test('buildDiscoveredDevices returns one payload per blueprint', () => {
     assert.equal(typeof device.name, 'string');
     assert.ok(device.external_id, 'each device has an external_id');
     assert.ok(Array.isArray(device.features) && device.features.length > 0);
+    for (const feature of device.features) {
+      assert.equal(feature.read_only, true, 'Strava activities are read-only in Gladys');
+    }
   }
 });
 
@@ -41,6 +54,12 @@ test('device external_ids are unique across the catalog', () => {
   const devices = buildDiscoveredDevices(gladys, config);
   const ids = devices.map((d) => d.external_id);
   assert.equal(new Set(ids).size, ids.length, 'no two devices may share an external_id');
+});
+
+test('feature external_ids are unique within and across devices', () => {
+  const devices = buildDiscoveredDevices(gladys, config);
+  const featureIds = devices.flatMap((d) => d.features.map((f) => f.external_id));
+  assert.equal(new Set(featureIds).size, featureIds.length);
 });
 
 test('findBlueprintByDevice routes an external_id back to its owner blueprint', () => {
@@ -61,92 +80,90 @@ test('manifest action keys are unique across blueprints', () => {
   assert.equal(new Set(keys).size, keys.length, 'no two blueprints may register the same action');
 });
 
-test('the camera declares a camera/image feature', () => {
-  const cameraBlueprint = DEVICE_BLUEPRINTS.find((bp) => bp.key === 'camera');
-  const device = cameraBlueprint.buildDevice(gladys, config);
-  const imageFeature = device.features.find((f) => f.category === DEVICE_FEATURE_CATEGORIES.CAMERA);
-  assert.ok(imageFeature, 'the camera must carry a camera feature');
-  assert.equal(imageFeature.type, DEVICE_FEATURE_TYPES.CAMERA.IMAGE);
-  assert.equal(imageFeature.read_only, true);
-});
-
-test('onGetImage resolves a base64 JPEG under the 150 KB limit', async () => {
-  const cameraBlueprint = DEVICE_BLUEPRINTS.find((bp) => bp.key === 'camera');
-  const image = await cameraBlueprint.onGetImage(gladys, {
-    device: { external_id: cameraBlueprint.deviceExternalId(gladys) },
-    config,
-  });
-  assert.match(image, /^image\/jpg;base64,/);
-  assert.ok(image.length <= 150 * 1024, 'the image must stay under 150 KB');
-});
-
-test('buildTransportEntries reports one valid entry per dual-channel device', () => {
-  const entries = buildTransportEntries(gladys, config);
-  assert.ok(entries.length > 0, 'the demo plug reports its transport');
-  const validValues = Object.values(DEVICE_TRANSPORTS);
-  for (const entry of entries) {
-    assert.ok(entry.external_id, 'each entry targets a device external_id');
-    assert.ok(validValues.includes(entry.transport), `invalid transport: ${entry.transport}`);
-  }
-});
-
-test('the demo plug honors the GLADYS_PREFER_LOCAL preference', () => {
-  const local = buildTransportEntries(gladys, normalizeConfig({ GLADYS_PREFER_LOCAL: true }));
-  const cloud = buildTransportEntries(gladys, normalizeConfig({ GLADYS_PREFER_LOCAL: false }));
-  const plugId = DEVICE_BLUEPRINTS.find((bp) => bp.key === 'plug').deviceExternalId(gladys);
-  assert.equal(local.find((e) => e.external_id === plugId).transport, DEVICE_TRANSPORTS.LOCAL);
-  assert.equal(cloud.find((e) => e.external_id === plugId).transport, DEVICE_TRANSPORTS.CLOUD);
-});
-
-test('nominal transport entries never carry a leftover degraded flag', () => {
-  const entries = buildTransportEntries(gladys, config);
-  for (const entry of entries) {
-    assert.equal(entry.degraded, undefined, 'nominal entries must clear the degraded state');
-  }
-});
-
-test('the plug reports a degraded cloud fallback when the LAN session is refused', () => {
-  const plugId = DEVICE_BLUEPRINTS.find((bp) => bp.key === 'plug').deviceExternalId(gladys);
-  simulateLanSession(false);
+test('the latest-activity device publishes the most recent activity, converted to the configured unit system', async () => {
+  withStravaSession([
+    {
+      name: 'Morning Run',
+      sport_type: 'Run',
+      distance: 10000, // 10 km
+      moving_time: 3000, // 50 min
+      total_elevation_gain: 120,
+      average_speed: 3, // 10.8 km/h
+      start_date_local: '2026-08-20T07:00:00',
+    },
+  ]);
   try {
-    const entries = buildTransportEntries(gladys, normalizeConfig({ GLADYS_PREFER_LOCAL: true }));
-    const entry = entries.find((e) => e.external_id === plugId);
-    assert.equal(entry.transport, DEVICE_TRANSPORTS.CLOUD, 'falls back to cloud');
-    assert.equal(entry.degraded, true, 'the fallback is flagged degraded');
-    assert.ok(entry.message.en, 'the reason carries at least the mandatory `en` text');
-    assert.ok(entry.message.en.length <= 200, 'tooltip messages are capped at 200 characters');
+    const latestActivity = DEVICE_BLUEPRINTS.find((bp) => bp.key === 'strava-latest-activity');
+    const fakeGladys = createFakeGladys();
+    await latestActivity.onPoll(fakeGladys, normalizeConfig());
+
+    const byId = Object.fromEntries(fakeGladys.published.map((p) => [p.featureExternalId, p]));
+    assert.equal(byId['strava-latest-activity:latest:name'].text, 'Morning Run');
+    assert.equal(byId['strava-latest-activity:latest:sport-type'].text, 'Run');
+    assert.equal(byId['strava-latest-activity:latest:distance'].state, 10);
+    assert.equal(byId['strava-latest-activity:latest:moving-time'].state, 50);
+    assert.equal(byId['strava-latest-activity:latest:elevation-gain'].state, 120);
+    assert.equal(byId['strava-latest-activity:latest:average-speed'].state, 10.8);
+    assert.equal(byId['strava-latest-activity:latest:start-date'].text, '2026-08-20T07:00:00');
   } finally {
-    simulateLanSession(true);
+    endStravaSession();
   }
 });
 
-test('identifyDevice signals a device that implements identify', async () => {
-  const lightId = DEVICE_BLUEPRINTS.find((bp) => bp.key === 'light').deviceExternalId(gladys);
-  const message = await identifyDevice(gladys, lightId, config);
-  assert.match(message.en, /signalling/);
-  assert.ok(message.fr, 'the message is multi-language');
-});
-
-test('identifyDevice explains when the device has no way to signal itself', async () => {
-  const weatherId = DEVICE_BLUEPRINTS.find((bp) => bp.key === 'weather-station').deviceExternalId(
-    gladys,
-  );
-  const message = await identifyDevice(gladys, weatherId, config);
-  assert.match(message.en, /no way to signal/);
-});
-
-test('the test_weather action returns a multi-language message', async () => {
-  const realFetch = globalThis.fetch;
-  globalThis.fetch = async () => ({
-    ok: true,
-    json: async () => ({ current: { temperature_2m: 21.4, relative_humidity_2m: 55 } }),
-  });
+test('the latest-activity device does nothing when the athlete has no activity yet', async () => {
+  withStravaSession([]);
   try {
-    const weatherStation = DEVICE_BLUEPRINTS.find((bp) => bp.key === 'weather-station');
-    const message = await weatherStation.actions.test_weather(gladys, { fields: {}, config });
-    assert.match(message.en, /21\.4/);
-    assert.match(message.fr, /21\.4/);
+    const latestActivity = DEVICE_BLUEPRINTS.find((bp) => bp.key === 'strava-latest-activity');
+    const fakeGladys = createFakeGladys();
+    await latestActivity.onPoll(fakeGladys, normalizeConfig());
+    assert.equal(fakeGladys.published.length, 0);
   } finally {
-    globalThis.fetch = realFetch;
+    endStravaSession();
+  }
+});
+
+test('the training-totals device sums activities within each rolling window', async () => {
+  const now = Date.now();
+  const daysAgo = (days) => new Date(now - days * 24 * 60 * 60 * 1000).toISOString();
+  withStravaSession([
+    { start_date: daysAgo(1), distance: 5000, moving_time: 1500, total_elevation_gain: 50 },
+    { start_date: daysAgo(3), distance: 10000, moving_time: 3000, total_elevation_gain: 100 },
+    { start_date: daysAgo(20), distance: 20000, moving_time: 6000, total_elevation_gain: 200 },
+  ]);
+  try {
+    const stats = DEVICE_BLUEPRINTS.find((bp) => bp.key === 'strava-stats');
+    const fakeGladys = createFakeGladys();
+    await stats.onPoll(fakeGladys, normalizeConfig());
+
+    const byId = Object.fromEntries(fakeGladys.published.map((p) => [p.featureExternalId, p]));
+    assert.equal(byId['strava-stats:summary:activities-7d'].state, 2);
+    assert.equal(byId['strava-stats:summary:distance-7d'].state, 15);
+    assert.equal(byId['strava-stats:summary:activities-30d'].state, 3);
+    assert.equal(byId['strava-stats:summary:distance-30d'].state, 35);
+  } finally {
+    endStravaSession();
+  }
+});
+
+test('the test_connection action returns a multi-language message with the athlete name', async () => {
+  withStravaSession([]);
+  const realFetchInner = globalThis.fetch;
+  globalThis.fetch = async (url) => {
+    if (String(url).includes('/athlete')) {
+      return { ok: true, json: async () => ({ id: 1, firstname: 'Ada', lastname: 'Lovelace' }) };
+    }
+    return realFetchInner(url);
+  };
+  try {
+    const latestActivity = DEVICE_BLUEPRINTS.find((bp) => bp.key === 'strava-latest-activity');
+    const fakeGladys = createFakeGladys();
+    const message = await latestActivity.actions.test_connection(fakeGladys, {
+      fields: {},
+      config: normalizeConfig(),
+    });
+    assert.match(message.en, /Ada Lovelace/);
+    assert.match(message.fr, /Ada Lovelace/);
+  } finally {
+    endStravaSession();
   }
 });
