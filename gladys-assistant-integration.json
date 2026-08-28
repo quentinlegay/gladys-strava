@@ -6,8 +6,8 @@
     "en": "View your Strava activities: latest activity details and rolling 7/30-day training totals.",
     "fr": "Consultez vos activités Strava : détail de la dernière activité et totaux glissants sur 7/30 jours."
   },
-  "version": "1.0.0",
-  "docker_image": "ghcr.io/quentinlegay/gladys-strava:1.0.0",
+  "version": "0.0.3",
+  "docker_image": "ghcr.io/quentinlegay/gladys-strava:0.0.3",
   "gladys_version": ">=4.86.0",
   "cover_image": "https://raw.githubusercontent.com/quentinlegay/gladys-strava/main/cover.png",
   "categories": ["services"],
