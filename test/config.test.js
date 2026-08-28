@@ -23,6 +23,45 @@ test('normalizeConfig falls back to the default for a missing numeric field', ()
   assert.equal(config.poll_frequency, DEFAULT_CONFIG.poll_frequency);
 });
 
+test('normalizeConfig falls back to the default for an empty-string poll_frequency', () => {
+  // Regression: an optional number field submitted untouched can arrive as
+  // '' rather than being omitted. `Number('')` is `0`, not `NaN`, so a plain
+  // `raw.poll_frequency ?? DEFAULT` does NOT catch it — Gladys then rejects
+  // the device with "invalid poll frequency" (0 is below the manifest min).
+  assert.equal(
+    normalizeConfig({ poll_frequency: '' }).poll_frequency,
+    DEFAULT_CONFIG.poll_frequency,
+  );
+});
+
+test('normalizeConfig falls back to the default for a non-numeric or non-positive poll_frequency', () => {
+  assert.equal(
+    normalizeConfig({ poll_frequency: 'not-a-number' }).poll_frequency,
+    DEFAULT_CONFIG.poll_frequency,
+  );
+  assert.equal(
+    normalizeConfig({ poll_frequency: 0 }).poll_frequency,
+    DEFAULT_CONFIG.poll_frequency,
+  );
+  assert.equal(
+    normalizeConfig({ poll_frequency: -100 }).poll_frequency,
+    DEFAULT_CONFIG.poll_frequency,
+  );
+  assert.equal(
+    normalizeConfig({ poll_frequency: null }).poll_frequency,
+    DEFAULT_CONFIG.poll_frequency,
+  );
+});
+
+test('normalizeConfig clamps an out-of-range poll_frequency into the manifest bounds [300, 3600]', () => {
+  assert.equal(normalizeConfig({ poll_frequency: 10 }).poll_frequency, 300);
+  assert.equal(normalizeConfig({ poll_frequency: 100000 }).poll_frequency, 3600);
+});
+
+test('normalizeConfig rounds a decimal poll_frequency to an integer', () => {
+  assert.equal(normalizeConfig({ poll_frequency: 900.7 }).poll_frequency, 901);
+});
+
 test('normalizeConfig rejects an unknown unit_system value back to metric', () => {
   assert.equal(normalizeConfig({ unit_system: 'nonsense' }).unit_system, 'metric');
   assert.equal(normalizeConfig().unit_system, 'metric');
