@@ -110,7 +110,11 @@ gladys.onOAuthCallback(async (key, { code, state, redirectUri: _redirectUri }) =
     // The SDK acks a thrown error back to Gladys as a plain failure (shown to
     // the user as "the integration refused the connection") without ever
     // logging it: log it ourselves here, or the real cause never surfaces.
-    logger.error('onOAuthCallback -> failed to complete the Strava connection', err);
+    logger.error(
+      `onOAuthCallback -> failed to complete the Strava connection ` +
+        `(poll_frequency=${JSON.stringify(config.poll_frequency)}, typeof=${typeof config.poll_frequency})`,
+      err,
+    );
     throw err;
   }
 });
