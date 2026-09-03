@@ -1,6 +1,6 @@
 {
   "name": "gladys-integration-strava",
-  "version": "1.0.0",
+  "version": "0.0.4",
   "private": true,
   "description": "Gladys Assistant external integration for Strava: view your activities from Gladys.",
   "type": "module",
