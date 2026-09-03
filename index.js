@@ -79,32 +79,40 @@ gladys.onOAuthAuthorizeUrl(async (key, redirectUri) => {
 });
 
 gladys.onOAuthCallback(async (key, { code, state, redirectUri: _redirectUri }) => {
-  if (state !== oauthState) {
-    throw new Error('OAuth state mismatch, please retry the connection.');
+  try {
+    if (state !== oauthState) {
+      throw new Error('OAuth state mismatch, please retry the connection.');
+    }
+    logger.info('onOAuthCallback -> exchanging the authorization code for tokens');
+    const tokens = await exchangeCodeForTokens({
+      clientId: config.client_id,
+      clientSecret: config.client_secret,
+      code,
+    });
+    setTokens(tokens);
+
+    const athleteName = tokens.athlete
+      ? [tokens.athlete.firstname, tokens.athlete.lastname].filter(Boolean).join(' ')
+      : undefined;
+
+    await gladys.setConfig({
+      access_token: tokens.access_token,
+      refresh_token: tokens.refresh_token,
+      expires_at: tokens.expires_at,
+      ...(athleteName ? { athlete_name: athleteName } : {}),
+    });
+    config = normalizeConfig(await gladys.getConfig());
+
+    await gladys.setConnectionStatus(true);
+    await gladys.publishDiscoveredDevices(buildDiscoveredDevices(gladys, config));
+    logger.info(`Connected to Strava${athleteName ? ` as ${athleteName}` : ''}.`);
+  } catch (err) {
+    // The SDK acks a thrown error back to Gladys as a plain failure (shown to
+    // the user as "the integration refused the connection") without ever
+    // logging it: log it ourselves here, or the real cause never surfaces.
+    logger.error('onOAuthCallback -> failed to complete the Strava connection', err);
+    throw err;
   }
-  logger.info('onOAuthCallback -> exchanging the authorization code for tokens');
-  const tokens = await exchangeCodeForTokens({
-    clientId: config.client_id,
-    clientSecret: config.client_secret,
-    code,
-  });
-  setTokens(tokens);
-
-  const athleteName = tokens.athlete
-    ? [tokens.athlete.firstname, tokens.athlete.lastname].filter(Boolean).join(' ')
-    : undefined;
-
-  await gladys.setConfig({
-    access_token: tokens.access_token,
-    refresh_token: tokens.refresh_token,
-    expires_at: tokens.expires_at,
-    ...(athleteName ? { athlete_name: athleteName } : {}),
-  });
-  config = normalizeConfig(await gladys.getConfig());
-
-  await gladys.setConnectionStatus(true);
-  await gladys.publishDiscoveredDevices(buildDiscoveredDevices(gladys, config));
-  logger.info(`Connected to Strava${athleteName ? ` as ${athleteName}` : ''}.`);
 });
 
 // --- Configuration updated by the user ---------------------------------------
