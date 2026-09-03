@@ -16,8 +16,11 @@
 // template's.
 // -----------------------------------------------------------------------------
 
+import { createLogger } from '@gladysassistant/integration-sdk';
 import { latestActivity } from './latestActivity.js';
 import { stats } from './stats.js';
+
+const logger = createLogger({ name: 'strava-devices' });
 
 export const DEVICE_BLUEPRINTS = [latestActivity, stats];
 
@@ -25,6 +28,15 @@ export const DEVICE_BLUEPRINTS = [latestActivity, stats];
  * Build the discovery payload for Gladys (all devices).
  */
 export function buildDiscoveredDevices(gladys, config) {
+  // Temporary diagnostic: Gladys has been rejecting devices[0].poll_frequency
+  // as "invalid poll frequency" (400) even though normalizeConfig always
+  // clamps it into [300, 3600] — logging the actual resolved value here,
+  // right where every caller (scan, OAuth callback, config update, initial
+  // connect) builds the payload, so the next failure shows what is really
+  // being sent instead of us guessing again.
+  logger.info(
+    `Building discovered devices with poll_frequency=${JSON.stringify(config.poll_frequency)} (typeof ${typeof config.poll_frequency})`,
+  );
   return DEVICE_BLUEPRINTS.map((bp) => bp.buildDevice(gladys, config));
 }
 
