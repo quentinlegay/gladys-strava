@@ -32,6 +32,22 @@ test('on connection, the athlete device, its states and the status are published
   });
 });
 
+test('every feature declares the numeric min and max Gladys requires', async (t) => {
+  // Gladys refuses a feature without them (422 "min cannot be null"), text
+  // features included; the fake Gladys of the SDK does not check it.
+  const { gladys } = await setup(t);
+  for (const imperial of [false, true]) {
+    if (imperial) {
+      await gladys.fake.configUpdated({ ...gladys.fake.config, units: 'imperial' });
+    }
+    for (const f of gladys.fake.discoveredDevices[0].features) {
+      assert.equal(typeof f.min, 'number', `${f.name}: min`);
+      assert.equal(typeof f.max, 'number', `${f.name}: max`);
+      assert.ok(f.min <= f.max, `${f.name}: min <= max`);
+    }
+  }
+});
+
 test('the activities present at the first sync are not announced', async (t) => {
   const { gladys } = await setup(t);
   assert.deepEqual(gladys.fake.sceneEvents, []);
