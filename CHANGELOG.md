@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [0.0.1] - 2026-10-12
+
 ### Added
 
 - Strava account linking through the Gladys "Connect" button (OAuth2), with
@@ -34,4 +36,5 @@ the notes of the version's GitHub Release.
 - CI (format, lint, tests on Node 22 and 24, Docker build), UI-driven Release
   workflow, multi-arch image build and GitHub Releases.
 
-[Unreleased]: https://github.com/quentinlegay/gladys-strava/commits/main
+[Unreleased]: https://github.com/quentinlegay/gladys-strava/compare/v0.0.1...HEAD
+[0.0.1]: https://github.com/quentinlegay/gladys-strava/releases/tag/v0.0.1
