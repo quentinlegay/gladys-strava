@@ -62,8 +62,8 @@
       "type": "section",
       "label": { "en": "Preferences", "fr": "Préférences" },
       "description": {
-        "en": "Without Gladys Plus, new activities show up at the next refresh. With Gladys Plus, paste your Open API key in the webhooks block: Strava then announces them within seconds.",
-        "fr": "Sans Gladys Plus, les nouvelles activités apparaissent au rafraîchissement suivant. Avec Gladys Plus, collez votre clé Open API dans le bloc des webhooks : Strava les annonce alors en quelques secondes."
+        "en": "Optional: with Gladys Plus, paste your Open API key in the \"Gladys Plus webhooks\" block to get your new activities within seconds instead of at the next refresh.",
+        "fr": "Facultatif : avec Gladys Plus, collez votre clé Open API dans le bloc « Webhooks Gladys Plus » pour recevoir vos nouvelles activités en quelques secondes, sans attendre le prochain rafraîchissement."
       }
     },
     {
@@ -125,7 +125,7 @@
   "webhooks": [
     {
       "key": "strava_events",
-      "label": { "en": "Strava activity events", "fr": "Événements d'activité Strava" },
+      "label": { "en": "New activities, instantly", "fr": "Nouvelles activités en temps réel" },
       "mode": "sync"
     }
   ],

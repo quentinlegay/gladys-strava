@@ -10,6 +10,11 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+### Changed
+
+- Simpler description of the optional Gladys Plus webhooks in the
+  Configuration screen.
+
 ### Fixed
 
 - Gladys refused to save the Strava device (HTTP 422): the "Last activity" and
