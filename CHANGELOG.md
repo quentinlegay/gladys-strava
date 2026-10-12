@@ -20,6 +20,8 @@ the notes of the version's GitHub Release.
 - Gladys refused to save the Strava device (HTTP 422): the "Last activity" and
   "Last activity sport" text features declared no minimum and maximum.
 
+## [1.0.0] - 2026-10-12
+
 ## [0.0.1] - 2026-10-12
 
 ### Added
@@ -46,5 +48,6 @@ the notes of the version's GitHub Release.
 - CI (format, lint, tests on Node 22 and 24, Docker build), UI-driven Release
   workflow, multi-arch image build and GitHub Releases.
 
-[Unreleased]: https://github.com/quentinlegay/gladys-strava/compare/v0.0.1...HEAD
+[Unreleased]: https://github.com/quentinlegay/gladys-strava/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/quentinlegay/gladys-strava/compare/v0.0.1...v1.0.0
 [0.0.1]: https://github.com/quentinlegay/gladys-strava/releases/tag/v0.0.1
