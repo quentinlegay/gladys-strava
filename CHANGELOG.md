@@ -10,6 +10,11 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+### Fixed
+
+- Gladys refused to save the Strava device (HTTP 422): the "Last activity" and
+  "Last activity sport" text features declared no minimum and maximum.
+
 ## [0.0.1] - 2026-10-12
 
 ### Added

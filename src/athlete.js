@@ -84,7 +84,13 @@ export function buildDevice(gladys, snapshot, config) {
       max: 100_000,
     });
   const text = (key, name) =>
-    sensor(ids, key, name, CATEGORIES.TEXT, TYPES.TEXT.TEXT, { keep_history: false });
+    sensor(ids, key, name, CATEGORIES.TEXT, TYPES.TEXT.TEXT, {
+      // Gladys requires min and max on every feature, text included: they
+      // bound the length of the text here.
+      min: 0,
+      max: 255,
+      keep_history: false,
+    });
 
   return {
     name: `Strava ${athleteName(snapshot)}`,
