@@ -1,0 +1,477 @@
+{
+  "manifest_version": 1,
+  "type": "device",
+  "name": "Strava",
+  "description": {
+    "en": "Your Strava activities and stats in Gladys: sensors, scene triggers and dashboard widgets.",
+    "fr": "Vos activités et statistiques Strava dans Gladys : capteurs, scènes et widgets."
+  },
+  "version": "0.0.0",
+  "docker_image": "ghcr.io/quentinlegay/gladys-strava:0.0.0",
+  "gladys_version": ">=5.1.0",
+  "cover_image": "https://raw.githubusercontent.com/quentinlegay/gladys-strava/main/cover.png",
+  "categories": ["services"],
+  "transports": ["cloud"],
+  "config_schema": [
+    {
+      "key": "intro",
+      "type": "section",
+      "label": {
+        "en": "Create your Strava API application",
+        "fr": "Créez votre application d'API Strava"
+      },
+      "description": {
+        "en": "On strava.com, open Settings > My API Application and create an application. As \"Authorization Callback Domain\", enter the host name you use to reach Gladys ({{gladys_host}}). Then copy its Client ID and Client Secret below, save, and click Connect.",
+        "fr": "Sur strava.com, ouvrez Paramètres > Mon application d'API et créez une application. Comme « Authorization Callback Domain », saisissez le nom d'hôte par lequel vous accédez à Gladys ({{gladys_host}}). Copiez ensuite son Client ID et son Client Secret ci-dessous, enregistrez, puis cliquez sur Connecter."
+      },
+      "links": [
+        {
+          "url": "https://www.strava.com/settings/api",
+          "label": { "en": "My Strava API application", "fr": "Mon application d'API Strava" }
+        },
+        {
+          "url": "https://developers.strava.com/docs/getting-started/",
+          "label": { "en": "Strava API documentation", "fr": "Documentation de l'API Strava" }
+        }
+      ]
+    },
+    {
+      "key": "client_id",
+      "type": "string",
+      "label": { "en": "Client ID", "fr": "Client ID" },
+      "placeholder": { "en": "e.g. 123456", "fr": "ex. 123456" },
+      "required": true
+    },
+    {
+      "key": "client_secret",
+      "type": "secret",
+      "label": { "en": "Client Secret", "fr": "Client Secret" },
+      "required": true
+    },
+    {
+      "key": "strava_account",
+      "type": "oauth2",
+      "label": { "en": "Strava account", "fr": "Compte Strava" },
+      "description": {
+        "en": "Save the Client ID and Client Secret first, then link your Strava account. Keep every permission ticked on the Strava page.",
+        "fr": "Enregistrez d'abord le Client ID et le Client Secret, puis liez votre compte Strava. Laissez toutes les autorisations cochées sur la page Strava."
+      }
+    },
+    {
+      "key": "preferences",
+      "type": "section",
+      "label": { "en": "Preferences", "fr": "Préférences" },
+      "description": {
+        "en": "Without Gladys Plus, new activities show up at the next refresh. With Gladys Plus, paste your Open API key in the webhooks block: Strava then announces them within seconds.",
+        "fr": "Sans Gladys Plus, les nouvelles activités apparaissent au rafraîchissement suivant. Avec Gladys Plus, collez votre clé Open API dans le bloc des webhooks : Strava les annonce alors en quelques secondes."
+      }
+    },
+    {
+      "key": "units",
+      "type": "select",
+      "label": { "en": "Units", "fr": "Unités" },
+      "required": false,
+      "default": "metric",
+      "options": [
+        { "value": "metric", "label": { "en": "Metric (km, m)", "fr": "Métrique (km, m)" } },
+        { "value": "imperial", "label": { "en": "Imperial (mi, ft)", "fr": "Impérial (mi, ft)" } }
+      ]
+    },
+    {
+      "key": "refresh_interval",
+      "type": "number",
+      "label": { "en": "Refresh interval (min)", "fr": "Intervalle de rafraîchissement (min)" },
+      "description": {
+        "en": "How often Strava is read, in minutes (5 to 240).",
+        "fr": "Fréquence de lecture de Strava, en minutes (5 à 240)."
+      },
+      "required": false,
+      "default": 15,
+      "min": 5,
+      "max": 240
+    },
+    {
+      "key": "weekly_goal",
+      "type": "number",
+      "label": { "en": "Weekly distance goal", "fr": "Objectif de distance hebdomadaire" },
+      "description": {
+        "en": "In km (or miles in imperial units), all sports together. 0 disables the goal.",
+        "fr": "En km (ou en miles en unités impériales), tous sports confondus. 0 désactive l'objectif."
+      },
+      "placeholder": { "en": "e.g. 50", "fr": "ex. 50" },
+      "required": false,
+      "default": 0,
+      "min": 0,
+      "max": 10000
+    }
+  ],
+  "actions": [
+    {
+      "key": "test_connection",
+      "label": { "en": "Test the connection", "fr": "Tester la connexion" },
+      "timeout_seconds": 30
+    },
+    {
+      "key": "sync_now",
+      "label": { "en": "Synchronize now", "fr": "Synchroniser maintenant" },
+      "timeout_seconds": 30
+    },
+    {
+      "key": "disconnect",
+      "label": { "en": "Unlink the Strava account", "fr": "Délier le compte Strava" },
+      "timeout_seconds": 30
+    }
+  ],
+  "webhooks": [
+    {
+      "key": "strava_events",
+      "label": { "en": "Strava activity events", "fr": "Événements d'activité Strava" },
+      "mode": "sync"
+    }
+  ],
+  "scene_triggers": [
+    {
+      "key": "new_activity",
+      "label": { "en": "New Strava activity", "fr": "Nouvelle activité Strava" },
+      "description": {
+        "en": "An activity was recorded or uploaded on Strava.",
+        "fr": "Une activité a été enregistrée ou importée sur Strava."
+      },
+      "fields": [
+        {
+          "key": "sport",
+          "type": "multi_select",
+          "label": { "en": "Sport", "fr": "Sport" },
+          "options": [
+            { "value": "run", "label": { "en": "Run", "fr": "Course à pied" } },
+            { "value": "ride", "label": { "en": "Ride", "fr": "Vélo" } },
+            { "value": "swim", "label": { "en": "Swim", "fr": "Natation" } },
+            { "value": "walk", "label": { "en": "Walk or hike", "fr": "Marche ou randonnée" } },
+            { "value": "other", "label": { "en": "Other sport", "fr": "Autre sport" } }
+          ]
+        }
+      ],
+      "variables": [
+        {
+          "key": "name",
+          "type": "string",
+          "label": { "en": "Activity name", "fr": "Nom de l'activité" }
+        },
+        { "key": "sport", "type": "string", "label": { "en": "Sport", "fr": "Sport" } },
+        {
+          "key": "sport_type",
+          "type": "string",
+          "label": { "en": "Strava sport type", "fr": "Type de sport Strava" }
+        },
+        { "key": "distance", "type": "number", "label": { "en": "Distance", "fr": "Distance" } },
+        {
+          "key": "distance_unit",
+          "type": "string",
+          "label": { "en": "Distance unit", "fr": "Unité de distance" }
+        },
+        {
+          "key": "moving_time",
+          "type": "number",
+          "label": { "en": "Moving time (min)", "fr": "Temps en mouvement (min)" }
+        },
+        {
+          "key": "elevation_gain",
+          "type": "number",
+          "label": { "en": "Elevation gain", "fr": "Dénivelé positif" }
+        },
+        {
+          "key": "average_speed",
+          "type": "number",
+          "label": { "en": "Average speed", "fr": "Vitesse moyenne" }
+        },
+        {
+          "key": "pr_count",
+          "type": "number",
+          "label": { "en": "Personal records", "fr": "Records personnels" }
+        },
+        {
+          "key": "activity_id",
+          "type": "string",
+          "label": { "en": "Activity ID", "fr": "ID de l'activité" }
+        },
+        {
+          "key": "url",
+          "type": "string",
+          "label": { "en": "Activity link", "fr": "Lien de l'activité" }
+        }
+      ]
+    },
+    {
+      "key": "personal_record",
+      "label": { "en": "Strava personal record", "fr": "Record personnel Strava" },
+      "description": {
+        "en": "A new activity beat at least one of your personal records.",
+        "fr": "Une nouvelle activité a battu au moins un de vos records personnels."
+      },
+      "fields": [
+        {
+          "key": "sport",
+          "type": "multi_select",
+          "label": { "en": "Sport", "fr": "Sport" },
+          "options": [
+            { "value": "run", "label": { "en": "Run", "fr": "Course à pied" } },
+            { "value": "ride", "label": { "en": "Ride", "fr": "Vélo" } },
+            { "value": "swim", "label": { "en": "Swim", "fr": "Natation" } },
+            { "value": "walk", "label": { "en": "Walk or hike", "fr": "Marche ou randonnée" } },
+            { "value": "other", "label": { "en": "Other sport", "fr": "Autre sport" } }
+          ]
+        }
+      ],
+      "variables": [
+        {
+          "key": "name",
+          "type": "string",
+          "label": { "en": "Activity name", "fr": "Nom de l'activité" }
+        },
+        { "key": "sport", "type": "string", "label": { "en": "Sport", "fr": "Sport" } },
+        {
+          "key": "sport_type",
+          "type": "string",
+          "label": { "en": "Strava sport type", "fr": "Type de sport Strava" }
+        },
+        {
+          "key": "pr_count",
+          "type": "number",
+          "label": { "en": "Personal records", "fr": "Records personnels" }
+        },
+        {
+          "key": "activity_id",
+          "type": "string",
+          "label": { "en": "Activity ID", "fr": "ID de l'activité" }
+        },
+        {
+          "key": "url",
+          "type": "string",
+          "label": { "en": "Activity link", "fr": "Lien de l'activité" }
+        }
+      ]
+    },
+    {
+      "key": "weekly_goal_reached",
+      "label": { "en": "Strava weekly goal reached", "fr": "Objectif hebdo Strava atteint" },
+      "description": {
+        "en": "The distance of the week reached the goal set in the configuration (once a week).",
+        "fr": "La distance de la semaine a atteint l'objectif de la configuration (une fois par semaine)."
+      },
+      "variables": [
+        {
+          "key": "week_distance",
+          "type": "number",
+          "label": { "en": "Distance this week", "fr": "Distance de la semaine" }
+        },
+        {
+          "key": "goal",
+          "type": "number",
+          "label": { "en": "Weekly goal", "fr": "Objectif hebdomadaire" }
+        },
+        {
+          "key": "distance_unit",
+          "type": "string",
+          "label": { "en": "Distance unit", "fr": "Unité de distance" }
+        },
+        {
+          "key": "week_activities",
+          "type": "number",
+          "label": { "en": "Activities this week", "fr": "Activités de la semaine" }
+        }
+      ]
+    }
+  ],
+  "scene_actions": [
+    {
+      "key": "sync_now",
+      "label": { "en": "Synchronize Strava", "fr": "Synchroniser Strava" },
+      "description": {
+        "en": "Read Strava now: new activities fire their triggers right away.",
+        "fr": "Lit Strava maintenant : les nouvelles activités déclenchent aussitôt leurs scènes."
+      },
+      "timeout_seconds": 30,
+      "outputs": [
+        {
+          "key": "linked",
+          "type": "boolean",
+          "label": { "en": "Account linked", "fr": "Compte lié" }
+        },
+        {
+          "key": "new_activities",
+          "type": "number",
+          "label": { "en": "New activities", "fr": "Nouvelles activités" }
+        }
+      ]
+    },
+    {
+      "key": "get_stats",
+      "label": { "en": "Get Strava statistics", "fr": "Obtenir les statistiques Strava" },
+      "description": {
+        "en": "Distance, time, elevation and count of a period, for the following actions.",
+        "fr": "Distance, temps, dénivelé et nombre d'une période, pour les actions suivantes."
+      },
+      "timeout_seconds": 30,
+      "fields": [
+        {
+          "key": "period",
+          "type": "select",
+          "label": { "en": "Period", "fr": "Période" },
+          "required": true,
+          "default": "week",
+          "options": [
+            { "value": "week", "label": { "en": "This week", "fr": "Cette semaine" } },
+            { "value": "recent", "label": { "en": "Last 4 weeks", "fr": "4 dernières semaines" } },
+            { "value": "year", "label": { "en": "This year", "fr": "Cette année" } },
+            { "value": "all", "label": { "en": "All time", "fr": "Depuis toujours" } }
+          ]
+        },
+        {
+          "key": "sport",
+          "type": "select",
+          "label": { "en": "Sport", "fr": "Sport" },
+          "required": true,
+          "default": "all",
+          "options": [
+            { "value": "all", "label": { "en": "All sports", "fr": "Tous les sports" } },
+            { "value": "run", "label": { "en": "Run", "fr": "Course à pied" } },
+            { "value": "ride", "label": { "en": "Ride", "fr": "Vélo" } },
+            { "value": "swim", "label": { "en": "Swim", "fr": "Natation" } }
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "key": "linked",
+          "type": "boolean",
+          "label": { "en": "Account linked", "fr": "Compte lié" }
+        },
+        { "key": "count", "type": "number", "label": { "en": "Activities", "fr": "Activités" } },
+        { "key": "distance", "type": "number", "label": { "en": "Distance", "fr": "Distance" } },
+        {
+          "key": "distance_unit",
+          "type": "string",
+          "label": { "en": "Distance unit", "fr": "Unité de distance" }
+        },
+        {
+          "key": "moving_time",
+          "type": "number",
+          "label": { "en": "Moving time (min)", "fr": "Temps en mouvement (min)" }
+        },
+        {
+          "key": "elevation_gain",
+          "type": "number",
+          "label": { "en": "Elevation gain", "fr": "Dénivelé positif" }
+        }
+      ]
+    },
+    {
+      "key": "get_last_activity",
+      "label": {
+        "en": "Get the last Strava activity",
+        "fr": "Obtenir la dernière activité Strava"
+      },
+      "description": {
+        "en": "Name, sport, distance and time of your latest activity, for the following actions.",
+        "fr": "Nom, sport, distance et durée de votre dernière activité, pour les actions suivantes."
+      },
+      "timeout_seconds": 30,
+      "outputs": [
+        {
+          "key": "linked",
+          "type": "boolean",
+          "label": { "en": "Account linked", "fr": "Compte lié" }
+        },
+        {
+          "key": "found",
+          "type": "boolean",
+          "label": { "en": "Activity found", "fr": "Activité trouvée" }
+        },
+        {
+          "key": "name",
+          "type": "string",
+          "label": { "en": "Activity name", "fr": "Nom de l'activité" }
+        },
+        {
+          "key": "sport_type",
+          "type": "string",
+          "label": { "en": "Strava sport type", "fr": "Type de sport Strava" }
+        },
+        { "key": "distance", "type": "number", "label": { "en": "Distance", "fr": "Distance" } },
+        {
+          "key": "distance_unit",
+          "type": "string",
+          "label": { "en": "Distance unit", "fr": "Unité de distance" }
+        },
+        {
+          "key": "moving_time",
+          "type": "number",
+          "label": { "en": "Moving time (min)", "fr": "Temps en mouvement (min)" }
+        },
+        {
+          "key": "elevation_gain",
+          "type": "number",
+          "label": { "en": "Elevation gain", "fr": "Dénivelé positif" }
+        },
+        {
+          "key": "start_date",
+          "type": "string",
+          "label": { "en": "Start date", "fr": "Date de début" }
+        },
+        {
+          "key": "url",
+          "type": "string",
+          "label": { "en": "Activity link", "fr": "Lien de l'activité" }
+        }
+      ]
+    }
+  ],
+  "widgets": [
+    {
+      "key": "weekly_summary",
+      "label": { "en": "Strava this week", "fr": "Strava cette semaine" },
+      "description": {
+        "en": "Distance, time, elevation and activities of the week, last 7 days chart.",
+        "fr": "Distance, temps, dénivelé et activités de la semaine, graphique sur 7 jours."
+      },
+      "icon": "activity",
+      "action_timeout_seconds": 30
+    },
+    {
+      "key": "recent_activities",
+      "label": { "en": "Strava activities", "fr": "Activités Strava" },
+      "description": {
+        "en": "Your latest Strava activities, with a link to each one.",
+        "fr": "Vos dernières activités Strava, avec un lien vers chacune."
+      },
+      "icon": "list",
+      "settings": [
+        {
+          "key": "count",
+          "type": "select",
+          "label": { "en": "Activities shown", "fr": "Activités affichées" },
+          "default": "5",
+          "options": [
+            { "value": "3", "label": { "en": "3", "fr": "3" } },
+            { "value": "5", "label": { "en": "5", "fr": "5" } },
+            { "value": "8", "label": { "en": "8", "fr": "8" } }
+          ]
+        },
+        {
+          "key": "sport",
+          "type": "select",
+          "label": { "en": "Sport", "fr": "Sport" },
+          "default": "all",
+          "options": [
+            { "value": "all", "label": { "en": "All sports", "fr": "Tous les sports" } },
+            { "value": "run", "label": { "en": "Run", "fr": "Course à pied" } },
+            { "value": "ride", "label": { "en": "Ride", "fr": "Vélo" } },
+            { "value": "swim", "label": { "en": "Swim", "fr": "Natation" } },
+            { "value": "walk", "label": { "en": "Walk or hike", "fr": "Marche ou randonnée" } },
+            { "value": "other", "label": { "en": "Other sport", "fr": "Autre sport" } }
+          ]
+        }
+      ]
+    }
+  ]
+}
