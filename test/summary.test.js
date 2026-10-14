@@ -39,10 +39,17 @@ test('sport groups follow the Strava totals', () => {
   assert.equal(sportGroup('Swim'), 'swim');
   assert.equal(sportGroup('Hike'), 'walk');
   assert.equal(sportGroup('Yoga'), 'other');
-  assert.deepEqual(sportTypeLabel('AlpineSki'), { en: 'Alpine ski', fr: 'Ski alpin' });
+  assert.deepEqual(sportTypeLabel('AlpineSki'), {
+    en: 'Alpine ski',
+    fr: 'Ski alpin',
+    de: 'Ski alpin',
+    es: 'Esquí alpino',
+  });
   assert.deepEqual(sportTypeLabel('StandUpPaddling'), {
     en: 'Stand Up Paddling',
     fr: 'Stand Up Paddling',
+    de: 'Stand Up Paddling',
+    es: 'Stand Up Paddling',
   });
 });
 

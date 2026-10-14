@@ -46,7 +46,12 @@ const TTL_SECONDS = 900;
 const truncate = (text, max) => (text.length > max ? `${text.slice(0, max - 1)}…` : text);
 
 // Same text in every language, with a per-language prefix.
-const localized = (build) => ({ en: build('en'), fr: build('fr') });
+const localized = (build) => ({
+  en: build('en'),
+  fr: build('fr'),
+  de: build('de'),
+  es: build('es'),
+});
 
 /** Content shown while no data can be displayed. */
 function placeholder(ctx) {
@@ -55,10 +60,14 @@ function placeholder(ctx) {
     ? {
         en: 'Link your Strava account from the configuration of the Strava integration.',
         fr: "Liez votre compte Strava depuis la configuration de l'intégration Strava.",
+        de: 'Verknüpfen Sie Ihr Strava-Konto in der Konfiguration der Strava-Integration.',
+        es: 'Vincula tu cuenta de Strava desde la configuración de la integración de Strava.',
       }
     : {
         en: 'Strava data is not available yet: check the integration logs.',
         fr: "Les données Strava ne sont pas encore disponibles : consultez les logs de l'intégration.",
+        de: 'Die Strava-Daten sind noch nicht verfügbar: Prüfen Sie die Logs der Integration.',
+        es: 'Los datos de Strava aún no están disponibles: consulta los registros de la integración.',
       };
   return { ttl_seconds: 60, components: [{ type: 'text', variant: 'body', text: message }] };
 }
@@ -86,8 +95,13 @@ function errorRow(error) {
       label: 'Strava',
       icon: 'alert-triangle',
       value: rateLimited
-        ? { en: 'Rate limited', fr: 'Limite atteinte' }
-        : { en: 'Unreachable', fr: 'Injoignable' },
+        ? {
+            en: 'Rate limited',
+            fr: 'Limite atteinte',
+            de: 'Limit erreicht',
+            es: 'Límite alcanzado',
+          }
+        : { en: 'Unreachable', fr: 'Injoignable', de: 'Nicht erreichbar', es: 'Inaccesible' },
       color: rateLimited ? WIDGET_COLORS.WARNING : WIDGET_COLORS.DANGER,
     },
   ];
@@ -101,7 +115,7 @@ function goalRow(snapshot, config) {
   const reached = distance >= config.weekly_goal;
   return [
     {
-      label: { en: 'Weekly goal', fr: 'Objectif hebdo' },
+      label: { en: 'Weekly goal', fr: 'Objectif hebdo', de: 'Wochenziel', es: 'Objetivo semanal' },
       icon: 'target',
       value: `${distance} / ${config.weekly_goal} ${distanceUnit(config.units)}`,
       color: reached ? WIDGET_COLORS.SUCCESS : WIDGET_COLORS.INFO,
@@ -119,26 +133,26 @@ function weeklySummary(snapshot, config, error) {
     components: [
       {
         type: 'value',
-        label: { en: 'Distance', fr: 'Distance' },
+        label: { en: 'Distance', fr: 'Distance', de: 'Distanz', es: 'Distancia' },
         icon: 'map',
         value: toDistance(week.distance, units),
         unit: distanceUnit(units),
       },
       {
         type: 'value',
-        label: { en: 'Moving time', fr: 'Temps actif' },
+        label: { en: 'Moving time', fr: 'Temps actif', de: 'Bewegungszeit', es: 'Tiempo activo' },
         icon: 'clock',
         value: formatDuration(week.moving_time),
       },
       {
         type: 'value',
-        label: { en: 'Activities', fr: 'Activités' },
+        label: { en: 'Activities', fr: 'Activités', de: 'Aktivitäten', es: 'Actividades' },
         icon: 'activity',
         value: week.count,
       },
       {
         type: 'value',
-        label: { en: 'Elevation', fr: 'Dénivelé' },
+        label: { en: 'Elevation', fr: 'Dénivelé', de: 'Höhenmeter', es: 'Desnivel' },
         icon: 'trending-up',
         value: toElevation(week.elevation_gain, units),
         unit: elevationUnit(units),
@@ -146,11 +160,16 @@ function weeklySummary(snapshot, config, error) {
       {
         type: 'chart',
         chart_type: 'bar',
-        title: { en: 'Last 7 days', fr: '7 derniers jours' },
+        title: {
+          en: 'Last 7 days',
+          fr: '7 derniers jours',
+          de: 'Letzte 7 Tage',
+          es: 'Últimos 7 días',
+        },
         unit: distanceUnit(units),
         series: [
           {
-            name: { en: 'Distance', fr: 'Distance' },
+            name: { en: 'Distance', fr: 'Distance', de: 'Distanz', es: 'Distancia' },
             points: snapshot.daily.map(({ date, distance }) => ({
               t: date,
               v: toDistance(distance, units),
@@ -166,7 +185,12 @@ function weeklySummary(snapshot, config, error) {
           ...(last
             ? [
                 {
-                  label: { en: 'Last activity', fr: 'Dernière activité' },
+                  label: {
+                    en: 'Last activity',
+                    fr: 'Dernière activité',
+                    de: 'Letzte Aktivität',
+                    es: 'Última actividad',
+                  },
                   icon: 'flag',
                   value: truncate(
                     `${last.name} · ${toDistance(last.distance, units)} ${distanceUnit(units)}`,
@@ -177,13 +201,23 @@ function weeklySummary(snapshot, config, error) {
               ]
             : []),
           {
-            label: { en: 'Run this year', fr: 'Course cette année' },
+            label: {
+              en: 'Run this year',
+              fr: 'Course cette année',
+              de: 'Laufen dieses Jahr',
+              es: 'Carrera este año',
+            },
             icon: 'trending-up',
             value: `${toDistance(year.run.distance, units)} ${distanceUnit(units)}`,
             color: WIDGET_COLORS.PRIMARY,
           },
           {
-            label: { en: 'Ride this year', fr: 'Vélo cette année' },
+            label: {
+              en: 'Ride this year',
+              fr: 'Vélo cette année',
+              de: 'Radfahren dieses Jahr',
+              es: 'Ciclismo este año',
+            },
             icon: 'trending-up',
             value: `${toDistance(year.ride.distance, units)} ${distanceUnit(units)}`,
             color: WIDGET_COLORS.PRIMARY,
@@ -192,14 +226,14 @@ function weeklySummary(snapshot, config, error) {
       },
       {
         type: 'button',
-        label: { en: 'Sync now', fr: 'Synchroniser' },
+        label: { en: 'Sync now', fr: 'Synchroniser', de: 'Synchronisieren', es: 'Sincronizar' },
         icon: 'refresh-cw',
         style: 'secondary',
         action: { key: WIDGET_ACTIONS.SYNC },
       },
       {
         type: 'button',
-        label: { en: 'Open Strava', fr: 'Ouvrir Strava' },
+        label: { en: 'Open Strava', fr: 'Ouvrir Strava', de: 'Strava öffnen', es: 'Abrir Strava' },
         icon: 'external-link',
         style: 'secondary',
         link: { url: athleteUrl(snapshot.athlete.id) },
@@ -224,9 +258,19 @@ function activityCard(activity, units) {
     description: {
       en: `${sport.en}: ${distance} in ${duration}, ${elevation} elevation gain, ${speed} average. ${activity.kudos_count} kudos.`,
       fr: `${sport.fr} : ${distance} en ${duration}, ${elevation} de dénivelé, ${speed} de moyenne. ${activity.kudos_count} kudos.`,
+      de: `${sport.de}: ${distance} in ${duration}, ${elevation} Höhenmeter, ${speed} im Schnitt. ${activity.kudos_count} Kudos.`,
+      es: `${sport.es}: ${distance} en ${duration}, ${elevation} de desnivel, ${speed} de media. ${activity.kudos_count} kudos.`,
     },
     links: [
-      { url: activityUrl(activity.id), label: { en: 'View on Strava', fr: 'Voir sur Strava' } },
+      {
+        url: activityUrl(activity.id),
+        label: {
+          en: 'View on Strava',
+          fr: 'Voir sur Strava',
+          de: 'Auf Strava ansehen',
+          es: 'Ver en Strava',
+        },
+      },
     ],
   };
 }
@@ -244,7 +288,12 @@ function recentActivities(snapshot, config, settings) {
         {
           type: 'text',
           variant: 'body',
-          text: { en: 'No recent activity.', fr: 'Aucune activité récente.' },
+          text: {
+            en: 'No recent activity.',
+            fr: 'Aucune activité récente.',
+            de: 'Keine aktuelle Aktivität.',
+            es: 'Ninguna actividad reciente.',
+          },
         },
       ],
     };
@@ -270,11 +319,18 @@ async function syncAction(ctx, { actionKey }) {
   }
   const result = await ctx.sync.refresh({ reason: 'widget' });
   if (!result) {
-    return { en: 'No Strava account is linked.', fr: "Aucun compte Strava n'est lié." };
+    return {
+      en: 'No Strava account is linked.',
+      fr: "Aucun compte Strava n'est lié.",
+      de: 'Kein Strava-Konto ist verknüpft.',
+      es: 'No hay ninguna cuenta de Strava vinculada.',
+    };
   }
   return {
     en: `Strava synchronized: ${result.newActivities} new activities.`,
     fr: `Strava synchronisé : ${result.newActivities} nouvelle(s) activité(s).`,
+    de: `Strava synchronisiert: ${result.newActivities} neue Aktivität(en).`,
+    es: `Strava sincronizado: ${result.newActivities} actividad(es) nueva(s).`,
   };
 }
 

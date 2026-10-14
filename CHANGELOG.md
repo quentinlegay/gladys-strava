@@ -10,6 +10,11 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+### Added
+
+- German and Spanish translations: manifest texts, action and status messages,
+  widget contents, and the user documentation (`docs/de.md`, `docs/es.md`).
+
 ## [1.0.1] - 2026-10-12
 
 ### Changed

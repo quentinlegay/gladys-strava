@@ -12,7 +12,8 @@ from the official
 - **Type**: `device` — **transport**: `cloud` (Strava API, nothing local)
 - **Requires**: Gladys ≥ 5.1.0, a Strava account and your own Strava API
   application (free)
-- **User documentation**: [English](docs/en.md) · [Français](docs/fr.md)
+- **User documentation**: [English](docs/en.md) · [Français](docs/fr.md) ·
+  [Deutsch](docs/de.md) · [Español](docs/es.md)
 
 ## Features
 
@@ -62,7 +63,7 @@ in `/data/strava-state.json`, so a restart never fires a trigger twice.
 │  ├─ oauth.js                       # "Connect" flow
 │  ├─ webhooks.js                    # Strava webhooks through Gladys Plus
 │  └─ store.js                       # local state under /data
-├─ docs/en.md, docs/fr.md            # user documentation (re-hosted by Gladys)
+├─ docs/{en,fr,de,es}.md             # user documentation (re-hosted by Gladys)
 ├─ test/                             # node --test, fake Gladys (SDK) + fake Strava
 ├─ gladys-assistant-integration.json # manifest
 ├─ Dockerfile                        # Node 24 Alpine, read-only rootfs ready

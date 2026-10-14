@@ -170,6 +170,8 @@ export function createApp(gladys, { fetch, now = Date.now, store, webhookDelayMs
         .setConnectionStatus(false, {
           en: 'Initialization failed, check the integration logs.',
           fr: "L'initialisation a échoué, consultez les logs de l'intégration.",
+          de: 'Die Initialisierung ist fehlgeschlagen, prüfen Sie die Logs der Integration.',
+          es: 'La inicialización ha fallado, consulta los registros de la integración.',
         })
         .catch(() => {});
     }
