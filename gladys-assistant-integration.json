@@ -8,8 +8,8 @@
     "de": "Ihre Strava-Aktivitäten und -Statistiken in Gladys: Sensoren, Szenen und Widgets.",
     "es": "Tus actividades y estadísticas de Strava en Gladys: sensores, escenas y widgets."
   },
-  "version": "1.0.1",
-  "docker_image": "ghcr.io/quentinlegay/gladys-strava:1.0.1",
+  "version": "1.0.2",
+  "docker_image": "ghcr.io/quentinlegay/gladys-strava:1.0.2",
   "gladys_version": ">=5.1.0",
   "cover_image": "https://raw.githubusercontent.com/quentinlegay/gladys-strava/main/cover.png",
   "categories": ["services"],
