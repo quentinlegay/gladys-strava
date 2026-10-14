@@ -78,7 +78,7 @@ test('every button action of the contents is handled and answers a short toast',
       const ack = await gladys.fake.widgetAction(key, action.key, action.params ?? {});
       assert.equal(ack.success, true, ack.error);
       assert.ok(ack.data.message.en.length <= 200);
-      assert.ok(ack.data.message.fr);
+      assert.ok(ack.data.message.fr && ack.data.message.de && ack.data.message.es);
     }
   }
 });

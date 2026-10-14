@@ -28,23 +28,43 @@ export const SPORTS = ['run', 'ride', 'swim', 'walk', 'other'];
 // Labels of the most common sport types; the others are split from their
 // CamelCase name ("AlpineSki" -> "Alpine Ski").
 const SPORT_TYPE_LABELS = {
-  Run: { en: 'Run', fr: 'Course' },
-  TrailRun: { en: 'Trail run', fr: 'Trail' },
-  VirtualRun: { en: 'Virtual run', fr: 'Course virtuelle' },
-  Ride: { en: 'Ride', fr: 'Vélo' },
-  VirtualRide: { en: 'Virtual ride', fr: 'Vélo virtuel' },
-  EBikeRide: { en: 'E-bike ride', fr: 'Vélo électrique' },
-  GravelRide: { en: 'Gravel ride', fr: 'Gravel' },
-  MountainBikeRide: { en: 'MTB ride', fr: 'VTT' },
-  Swim: { en: 'Swim', fr: 'Natation' },
-  Walk: { en: 'Walk', fr: 'Marche' },
-  Hike: { en: 'Hike', fr: 'Randonnée' },
-  WeightTraining: { en: 'Weight training', fr: 'Musculation' },
-  Workout: { en: 'Workout', fr: 'Entraînement' },
-  Yoga: { en: 'Yoga', fr: 'Yoga' },
-  Rowing: { en: 'Rowing', fr: 'Aviron' },
-  AlpineSki: { en: 'Alpine ski', fr: 'Ski alpin' },
-  NordicSki: { en: 'Nordic ski', fr: 'Ski de fond' },
+  Run: { en: 'Run', fr: 'Course', de: 'Lauf', es: 'Carrera' },
+  TrailRun: { en: 'Trail run', fr: 'Trail', de: 'Traillauf', es: 'Trail' },
+  VirtualRun: {
+    en: 'Virtual run',
+    fr: 'Course virtuelle',
+    de: 'Virtueller Lauf',
+    es: 'Carrera virtual',
+  },
+  Ride: { en: 'Ride', fr: 'Vélo', de: 'Radfahrt', es: 'Ciclismo' },
+  VirtualRide: {
+    en: 'Virtual ride',
+    fr: 'Vélo virtuel',
+    de: 'Virtuelle Radfahrt',
+    es: 'Ciclismo virtual',
+  },
+  EBikeRide: {
+    en: 'E-bike ride',
+    fr: 'Vélo électrique',
+    de: 'E-Bike-Fahrt',
+    es: 'Bicicleta eléctrica',
+  },
+  GravelRide: { en: 'Gravel ride', fr: 'Gravel', de: 'Gravel', es: 'Gravel' },
+  MountainBikeRide: { en: 'MTB ride', fr: 'VTT', de: 'Mountainbike', es: 'BTT' },
+  Swim: { en: 'Swim', fr: 'Natation', de: 'Schwimmen', es: 'Natación' },
+  Walk: { en: 'Walk', fr: 'Marche', de: 'Gehen', es: 'Caminata' },
+  Hike: { en: 'Hike', fr: 'Randonnée', de: 'Wanderung', es: 'Senderismo' },
+  WeightTraining: {
+    en: 'Weight training',
+    fr: 'Musculation',
+    de: 'Krafttraining',
+    es: 'Musculación',
+  },
+  Workout: { en: 'Workout', fr: 'Entraînement', de: 'Training', es: 'Entrenamiento' },
+  Yoga: { en: 'Yoga', fr: 'Yoga', de: 'Yoga', es: 'Yoga' },
+  Rowing: { en: 'Rowing', fr: 'Aviron', de: 'Rudern', es: 'Remo' },
+  AlpineSki: { en: 'Alpine ski', fr: 'Ski alpin', de: 'Ski alpin', es: 'Esquí alpino' },
+  NordicSki: { en: 'Nordic ski', fr: 'Ski de fond', de: 'Langlauf', es: 'Esquí de fondo' },
 };
 
 export function sportGroup(sportType) {
@@ -61,7 +81,7 @@ export function sportTypeLabel(sportType) {
     return SPORT_TYPE_LABELS[sportType];
   }
   const label = String(sportType || 'Activity').replace(/([a-z])([A-Z])/g, '$1 $2');
-  return { en: label, fr: label };
+  return { en: label, fr: label, de: label, es: label };
 }
 
 export function activityUrl(id) {

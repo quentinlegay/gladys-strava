@@ -256,12 +256,12 @@ test('unlinking revokes the access, clears the tokens and forgets the state', as
   assert.equal(gladys.fake.connectionStatus.connected, false);
 });
 
-test('the manifest actions answer bilingual messages', async (t) => {
+test('the manifest actions answer translated messages', async (t) => {
   const { gladys } = await setup(t);
   const test = await gladys.fake.action('test_connection');
   assert.equal(test.success, true);
   assert.match(test.data.message.en, /Ada Lovelace: 2 activities, 52\.2 km this week/);
-  assert.ok(test.data.message.fr);
+  assert.ok(test.data.message.fr && test.data.message.de && test.data.message.es);
   const sync = await gladys.fake.action('sync_now');
   assert.match(sync.data.message.en, /0 new activities/);
 });

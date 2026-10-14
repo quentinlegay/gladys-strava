@@ -33,14 +33,20 @@ export const CONNECTION_MESSAGES = {
   NOT_CONFIGURED: {
     en: 'Fill in the Client ID and Client Secret of your Strava API application, then click Connect.',
     fr: "Renseignez le Client ID et le Client Secret de votre application d'API Strava, puis cliquez sur Connecter.",
+    de: 'Tragen Sie die Client ID und das Client Secret Ihrer Strava-API-Anwendung ein und klicken Sie dann auf Verbinden.',
+    es: 'Introduce el Client ID y el Client Secret de tu aplicación de API de Strava y haz clic en Conectar.',
   },
   NOT_LINKED: {
     en: 'Click Connect to link your Strava account.',
     fr: 'Cliquez sur Connecter pour lier votre compte Strava.',
+    de: 'Klicken Sie auf Verbinden, um Ihr Strava-Konto zu verknüpfen.',
+    es: 'Haz clic en Conectar para vincular tu cuenta de Strava.',
   },
   AUTH_REVOKED: {
     en: 'Strava refused the access: click Connect to link your account again.',
     fr: "Strava a refusé l'accès : cliquez sur Connecter pour lier à nouveau votre compte.",
+    de: 'Strava hat den Zugriff verweigert: Klicken Sie auf Verbinden, um Ihr Konto erneut zu verknüpfen.',
+    es: 'Strava ha denegado el acceso: haz clic en Conectar para volver a vincular tu cuenta.',
   },
 };
 

@@ -53,7 +53,7 @@ src/oauth.js                      "Connect" flow (manifest `oauth2` field)
 src/webhooks.js                   Strava push subscription through Gladys Plus (manifest `webhooks`)
 src/store.js                      /data/strava-state.json: activities already announced, goal week, subscription
 gladys-assistant-integration.json manifest
-docs/en.md, docs/fr.md            user documentation, re-hosted by Gladys (mandatory)
+docs/{en,fr,de,es}.md             user documentation, re-hosted by Gladys (mandatory)
 test/                             node --test, SDK fake Gladys + test/helpers/fakeStrava.js (fake `fetch`)
 .github/scripts/release.mjs       release helpers (manifest bump, changelog), tested in test/
 ```
@@ -92,15 +92,17 @@ test/                             node --test, SDK fake Gladys + test/helpers/fa
 - **Changelog.** Every user-visible change adds a line under `## [Unreleased]`
   in `CHANGELOG.md` (`### Added`, `Changed`, `Fixed`, `Removed`, `Security`).
   Never write a version heading: the Release workflow moves the section.
-- **Manifest.** Texts are multi-language objects `{ "en": ..., "fr": ... }`
+- **Manifest.** Texts are multi-language objects
+  `{ "en": ..., "fr": ..., "de": ..., "es": ... }`
   (`label`, `description`, `placeholder`), never plain strings; the catalog
   `description` holds 10 to 100 characters per language. `scene_triggers`,
   `scene_actions` and `widgets` require `gladys_version` `>=5.1.0`.
   `test/manifest.test.js` ties the manifest to the code: change both sides
   together.
-- **User-facing text** is bilingual (English and French): action and status
-  messages, widget contents, manifest texts, and `docs/en.md` / `docs/fr.md`,
-  kept in sync.
+- **User-facing text** exists in English, French, German and Spanish
+  (`en`, `fr`, `de`, `es`): action and status messages, widget contents,
+  manifest texts, and `docs/en.md` / `fr.md` / `de.md` / `es.md`, kept in
+  sync.
 - **Style.** Prettier formats, ESLint catches mistakes. Comments explain why,
   in English. Tests never touch the network: Strava goes through
   `test/helpers/fakeStrava.js`, Gladys through the SDK's `createFakeGladys`.

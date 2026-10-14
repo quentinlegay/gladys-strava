@@ -184,7 +184,9 @@ test('every text is bilingual: English and French', () => {
   assert.ok(texts.length > 50);
   for (const [where, text] of texts) {
     assert.equal(typeof text, 'object', `${where} must be a multi-language object`);
-    assert.ok(text.en && text.fr, `${where} needs an English and a French text`);
+    for (const lang of ['en', 'fr', 'de', 'es']) {
+      assert.ok(text[lang], `${where} needs a "${lang}" text`);
+    }
   }
 });
 

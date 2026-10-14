@@ -182,6 +182,8 @@ export function buildTransport(gladys, athleteId, error) {
       message: {
         en: 'Strava rate limit reached, the next refresh will catch up',
         fr: 'Limite de requêtes Strava atteinte, le prochain rafraîchissement rattrapera',
+        de: 'Strava-Anfragelimit erreicht, die nächste Aktualisierung holt es nach',
+        es: 'Límite de solicitudes de Strava alcanzado, la próxima actualización se pondrá al día',
       },
     };
   }

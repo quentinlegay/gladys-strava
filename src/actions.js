@@ -14,6 +14,8 @@ const logger = createLogger({ name: 'actions' });
 const NOT_LINKED = {
   en: 'No Strava account is linked: click Connect first.',
   fr: "Aucun compte Strava n'est lié : cliquez d'abord sur Connecter.",
+  de: 'Kein Strava-Konto ist verknüpft: Klicken Sie zuerst auf Verbinden.',
+  es: 'No hay ninguna cuenta de Strava vinculada: haz clic primero en Conectar.',
 };
 
 export const ACTIONS = {
@@ -23,6 +25,8 @@ export const ACTIONS = {
       return {
         en: 'Fill in and save the Client ID and Client Secret first.',
         fr: "Renseignez et enregistrez d'abord le Client ID et le Client Secret.",
+        de: 'Tragen Sie zuerst die Client ID und das Client Secret ein und speichern Sie sie.',
+        es: 'Introduce y guarda primero el Client ID y el Client Secret.',
       };
     }
     if (!isLinked(ctx.getConfig())) {
@@ -35,6 +39,8 @@ export const ACTIONS = {
     return {
       en: `Connected to Strava as ${name}: ${snapshot.week.all.count} activities, ${week} this week.`,
       fr: `Connecté à Strava en tant que ${name} : ${snapshot.week.all.count} activité(s), ${week} cette semaine.`,
+      de: `Mit Strava verbunden als ${name}: ${snapshot.week.all.count} Aktivität(en), ${week} diese Woche.`,
+      es: `Conectado a Strava como ${name}: ${snapshot.week.all.count} actividad(es), ${week} esta semana.`,
     };
   },
 
@@ -47,6 +53,8 @@ export const ACTIONS = {
     return {
       en: `Strava synchronized: ${newActivities} new activities.`,
       fr: `Strava synchronisé : ${newActivities} nouvelle(s) activité(s).`,
+      de: `Strava synchronisiert: ${newActivities} neue Aktivität(en).`,
+      es: `Strava sincronizado: ${newActivities} actividad(es) nueva(s).`,
     };
   },
 
@@ -59,6 +67,8 @@ export const ACTIONS = {
     return {
       en: 'Strava account unlinked. Click Connect to link an account again.',
       fr: 'Compte Strava délié. Cliquez sur Connecter pour lier à nouveau un compte.',
+      de: 'Strava-Konto getrennt. Klicken Sie auf Verbinden, um erneut ein Konto zu verknüpfen.',
+      es: 'Cuenta de Strava desvinculada. Haz clic en Conectar para volver a vincular una cuenta.',
     };
   },
 };
