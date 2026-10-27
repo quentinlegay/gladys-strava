@@ -8,7 +8,7 @@ Describe each change under `## [Unreleased]` as you make it. The Release
 workflow moves that section under the version it ships, and the section becomes
 the notes of the version's GitHub Release.
 
-## [Unreleased]
+## [1.0.3]
 
 ### Added
 
@@ -64,7 +64,8 @@ the notes of the version's GitHub Release.
 - CI (format, lint, tests on Node 22 and 24, Docker build), UI-driven Release
   workflow, multi-arch image build and GitHub Releases.
 
-[Unreleased]: https://github.com/quentinlegay/gladys-strava/compare/v1.0.2...HEAD
+[Unreleased]: https://github.com/quentinlegay/gladys-strava/compare/v1.0.3...HEAD
+[1.0.3]: https://github.com/quentinlegay/gladys-strava/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/quentinlegay/gladys-strava/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/quentinlegay/gladys-strava/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/quentinlegay/gladys-strava/compare/v0.0.1...v1.0.0

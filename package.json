@@ -1,6 +1,6 @@
 {
   "name": "gladys-strava",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "private": true,
   "description": "Gladys Assistant external integration for Strava: activities, stats, scene triggers and dashboard widgets.",
   "type": "module",
