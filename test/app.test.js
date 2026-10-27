@@ -131,9 +131,47 @@ test('the weekly goal fires once, when the distance of the week reaches it', asy
   await ctx.sync.refresh();
   const goal = gladys.fake.sceneEvents.find((e) => e.key === TRIGGERS.WEEKLY_GOAL_REACHED);
   assert.deepEqual(goal.data, {
-    week_distance: 72.2,
+    goal_type: 'distance',
     goal: 60,
+    goal_unit: 'km',
+    week_distance: 72.2,
     distance_unit: 'km',
+    week_hours: 2.37,
+    week_activities: 3,
+  });
+
+  await ctx.sync.refresh();
+  assert.equal(
+    gladys.fake.sceneEvents.filter((e) => e.key === TRIGGERS.WEEKLY_GOAL_REACHED).length,
+    1,
+  );
+});
+
+test('a time goal fires once, when the moving time of the week reaches it', async (t) => {
+  const { gladys, strava, ctx } = await setup(t, {
+    config: linkedConfig({ weekly_goal_type: 'time', weekly_goal: 3 }),
+  });
+  assert.equal(gladys.fake.sceneEvents.length, 0, '2h22 < 3 h');
+
+  strava.data.activities.unshift(
+    activity({
+      id: 105,
+      sport_type: 'Run',
+      start_date: '2026-10-14T12:00:00Z',
+      start_date_local: '2026-10-14T14:00:00Z',
+      distance: 8000,
+      moving_time: 2400,
+    }),
+  );
+  await ctx.sync.refresh();
+  const goal = gladys.fake.sceneEvents.find((e) => e.key === TRIGGERS.WEEKLY_GOAL_REACHED);
+  assert.deepEqual(goal.data, {
+    goal_type: 'time',
+    goal: 3,
+    goal_unit: 'h',
+    week_distance: 60.2,
+    distance_unit: 'km',
+    week_hours: 3.03,
     week_activities: 3,
   });
 

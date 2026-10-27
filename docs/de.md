@@ -50,9 +50,12 @@ Optionen:
 - **Aktualisierungsintervall**: wie oft Strava gelesen wird, standardmäßig
   alle 15 Minuten (mindestens 5 Minuten, Strava begrenzt die Anzahl der
   Anfragen).
-- **Wöchentliches Distanzziel**: alle Sportarten zusammen, in km (oder
-  Meilen). Wird vom Auslöser „Strava-Wochenziel erreicht“ und vom
-  Dashboard-Widget verwendet; 0 deaktiviert es.
+- **Art des Wochenziels**: ein Distanzziel (km oder Meilen) oder ein Ziel für
+  die Bewegungszeit (Stunden).
+- **Wochenziel**: alle Sportarten zusammen, in km (oder Meilen) für ein
+  Distanzziel, in Stunden für ein Zeitziel (z. B. `4.5`). Wird vom Auslöser
+  „Strava-Wochenziel erreicht“ und vom Dashboard-Widget verwendet; 0
+  deaktiviert es.
 
 ## 3. Sofortige Benachrichtigungen mit Gladys Plus (optional)
 
@@ -98,8 +101,10 @@ Auslöser:
   `average_speed`, `pr_count`, `activity_id` und `url` verwenden.
 - **Persönlicher Strava-Rekord** — eine neue Aktivität hat mindestens einen
   Ihrer Rekorde gebrochen (`name`, `sport`, `pr_count`, `url`...).
-- **Strava-Wochenziel erreicht** — die Distanz der Woche hat Ihr Ziel
-  erreicht, einmal pro Woche (`week_distance`, `goal`, `week_activities`).
+- **Strava-Wochenziel erreicht** — die Distanz oder die Bewegungszeit der
+  Woche hat Ihr Ziel erreicht, einmal pro Woche (`goal_type` = `distance` oder
+  `time`, `goal`, `goal_unit`, `week_distance`, `week_hours`,
+  `week_activities`).
 
 Jede Aktivität wird einmal gemeldet, auch nach einem Neustart; Aktivitäten,
 die vor der Verknüpfung des Kontos existierten, werden nicht gemeldet.

@@ -43,8 +43,11 @@ Options:
   tab.
 - **Refresh interval**: how often Strava is read, every 15 minutes by default
   (5 minutes minimum, Strava limits the number of requests).
-- **Weekly distance goal**: all sports together, in km (or miles). Used by the
-  "Strava weekly goal reached" trigger and the dashboard widget; 0 disables it.
+- **Weekly goal type**: a distance goal (km or miles) or a moving time goal
+  (hours).
+- **Weekly goal**: all sports together, in km (or miles) for a distance goal,
+  in hours for a time goal (e.g. `4.5`). Used by the "Strava weekly goal
+  reached" trigger and the dashboard widget; 0 disables it.
 
 ## 3. Instant notifications with Gladys Plus (optional)
 
@@ -87,8 +90,9 @@ Triggers:
   `average_speed`, `pr_count`, `activity_id` and `url`.
 - **Strava personal record** — a new activity beat at least one of your
   records (`name`, `sport`, `pr_count`, `url`...).
-- **Strava weekly goal reached** — the distance of the week reached your goal,
-  once a week (`week_distance`, `goal`, `week_activities`).
+- **Strava weekly goal reached** — the distance or the moving time of the week
+  reached your goal, once a week (`goal_type` = `distance` or `time`, `goal`,
+  `goal_unit`, `week_distance`, `week_hours`, `week_activities`).
 
 Each activity is announced once, even after a restart; the activities that
 existed before the account was linked are not announced.

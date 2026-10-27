@@ -47,9 +47,12 @@ Opciones:
 - **Intervalo de actualización**: frecuencia de lectura de Strava, cada 15
   minutos por defecto (5 minutos como mínimo, Strava limita el número de
   solicitudes).
-- **Objetivo de distancia semanal**: todos los deportes juntos, en km (o
-  millas). Lo usan el disparador «Objetivo semanal de Strava alcanzado» y el
-  widget del panel; 0 lo desactiva.
+- **Tipo de objetivo semanal**: un objetivo de distancia (km o millas) o de
+  tiempo activo (horas).
+- **Objetivo semanal**: todos los deportes juntos, en km (o millas) para un
+  objetivo de distancia, en horas para un objetivo de tiempo (p. ej. `4.5`).
+  Lo usan el disparador «Objetivo semanal de Strava alcanzado» y el widget del
+  panel; 0 lo desactiva.
 
 ## 3. Notificaciones instantáneas con Gladys Plus (opcional)
 
@@ -95,8 +98,9 @@ Disparadores:
   `average_speed`, `pr_count`, `activity_id` y `url`.
 - **Récord personal de Strava** — una nueva actividad ha batido al menos uno
   de tus récords (`name`, `sport`, `pr_count`, `url`...).
-- **Objetivo semanal de Strava alcanzado** — la distancia de la semana ha
-  alcanzado tu objetivo, una vez por semana (`week_distance`, `goal`,
+- **Objetivo semanal de Strava alcanzado** — la distancia o el tiempo activo
+  de la semana ha alcanzado tu objetivo, una vez por semana (`goal_type` =
+  `distance` o `time`, `goal`, `goal_unit`, `week_distance`, `week_hours`,
   `week_activities`).
 
 Cada actividad se anuncia una sola vez, incluso tras un reinicio; las

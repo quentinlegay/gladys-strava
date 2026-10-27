@@ -10,6 +10,13 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+### Added
+
+- Weekly goal in hours of moving time: the new "Weekly goal type" setting
+  chooses between a distance goal (km or miles) and a time goal (hours). The
+  "Strava weekly goal reached" trigger gains the `goal_type`, `goal_unit` and
+  `week_hours` variables.
+
 ## [1.0.2] - 2026-10-14
 
 ### Added

@@ -10,6 +10,9 @@
 
 export const UNITS = { METRIC: 'metric', IMPERIAL: 'imperial' };
 
+// What the weekly goal measures: the distance or the moving time of the week.
+export const GOAL_TYPES = { DISTANCE: 'distance', TIME: 'time' };
+
 // Bounds of the refresh interval, in minutes. Strava allows 100 read requests
 // per 15 minutes and 1,000 per day per application; a refresh costs 2 requests,
 // so even the fastest pace stays far below the daily quota.
@@ -23,8 +26,10 @@ export const DEFAULT_CONFIG = {
   client_secret: '',
   units: UNITS.METRIC,
   refresh_interval: 15,
-  // Weekly distance goal, in km (metric) or miles (imperial). 0 disables the
-  // `weekly_goal_reached` scene trigger and the goal row of the widget.
+  // Weekly goal, in km (metric) or miles (imperial) for a distance goal, in
+  // hours for a time goal. 0 disables the `weekly_goal_reached` scene trigger
+  // and the goal row of the widget.
+  weekly_goal_type: GOAL_TYPES.DISTANCE,
   weekly_goal: 0,
 };
 
@@ -48,6 +53,8 @@ export function normalizeConfig(raw = {}) {
     refresh_interval: Number.isFinite(refresh)
       ? Math.min(MAX_REFRESH_INTERVAL, Math.max(MIN_REFRESH_INTERVAL, refresh))
       : DEFAULT_CONFIG.refresh_interval,
+    weekly_goal_type:
+      raw.weekly_goal_type === GOAL_TYPES.TIME ? GOAL_TYPES.TIME : GOAL_TYPES.DISTANCE,
     weekly_goal: Number.isFinite(goal) && goal > 0 ? goal : 0,
     expires_at: raw.expires_at === undefined ? undefined : Number(raw.expires_at),
   };
