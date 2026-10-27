@@ -16,6 +16,7 @@ import {
   distanceUnit,
   toDistance,
   toElevation,
+  toHours,
   toMinutes,
   toSpeed,
 } from './strava/summary.js';
@@ -58,12 +59,16 @@ export function personalRecordEvent(activity) {
   };
 }
 
-/** Event data of `weekly_goal_reached`. */
-export function weeklyGoalEvent(weekDistance, weekCount, config) {
+/** Event data of `weekly_goal_reached`, for a distance or a time goal. */
+export function weeklyGoalEvent(snapshot, progress, config) {
+  const week = snapshot.week.all;
   return {
-    week_distance: weekDistance,
-    goal: config.weekly_goal,
+    goal_type: progress.type,
+    goal: progress.goal,
+    goal_unit: progress.unit,
+    week_distance: toDistance(week.distance, config.units),
     distance_unit: distanceUnit(config.units),
-    week_activities: weekCount,
+    week_hours: toHours(week.moving_time),
+    week_activities: week.count,
   };
 }

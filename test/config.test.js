@@ -26,6 +26,8 @@ test('normalizeConfig forces the types and the bounds', () => {
   assert.equal(normalizeConfig({ refresh_interval: 'abc' }).refresh_interval, 15);
   assert.equal(normalizeConfig({ units: 'parsecs' }).units, 'metric');
   assert.equal(normalizeConfig({ weekly_goal: -3 }).weekly_goal, 0);
+  assert.equal(normalizeConfig({ weekly_goal_type: 'time' }).weekly_goal_type, 'time');
+  assert.equal(normalizeConfig({ weekly_goal_type: 'laps' }).weekly_goal_type, 'distance');
 });
 
 test('an account is linked once the application and a refresh token exist', () => {

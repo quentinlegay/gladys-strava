@@ -19,7 +19,14 @@ const logger = createLogger({ name: 'app' });
 
 // The keys of the form: a change of one of them re-applies the configuration
 // (a token refresh, saved through setConfig, does not).
-const USER_KEYS = ['client_id', 'client_secret', 'units', 'refresh_interval', 'weekly_goal'];
+const USER_KEYS = [
+  'client_id',
+  'client_secret',
+  'units',
+  'refresh_interval',
+  'weekly_goal_type',
+  'weekly_goal',
+];
 const signature = (config) =>
   JSON.stringify([...USER_KEYS.map((key) => config[key]), Boolean(config.refresh_token)]);
 

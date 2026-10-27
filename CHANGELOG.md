@@ -8,9 +8,14 @@ Describe each change under `## [Unreleased]` as you make it. The Release
 workflow moves that section under the version it ships, and the section becomes
 the notes of the version's GitHub Release.
 
-## [Unreleased]
+## [1.0.3]
 
-## [1.0.3] - 2026-10-27
+### Added
+
+- Weekly goal in hours of moving time: the new "Weekly goal type" setting
+  chooses between a distance goal (km or miles) and a time goal (hours). The
+  "Strava weekly goal reached" trigger gains the `goal_type`, `goal_unit` and
+  `week_hours` variables.
 
 ## [1.0.2] - 2026-10-14
 

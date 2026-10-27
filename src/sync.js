@@ -17,7 +17,7 @@ import { createLogger } from '@gladysassistant/integration-sdk';
 import { buildDevice, buildStates, buildTransport } from './athlete.js';
 import { isLinked } from './config.js';
 import { MAX_SEEN_ACTIVITIES } from './store.js';
-import { buildSnapshot, toDistance } from './strava/summary.js';
+import { buildSnapshot, weeklyGoalProgress } from './strava/summary.js';
 import { TRIGGERS, newActivityEvent, personalRecordEvent, weeklyGoalEvent } from './triggers.js';
 import { refreshWidgets } from './widgets.js';
 
@@ -239,8 +239,8 @@ export class StravaSync {
   async fireTriggers(snapshot, config) {
     const { state } = this.store;
     const ids = snapshot.activities.map((activity) => activity.id);
-    const weekDistance = toDistance(snapshot.week.all.distance, config.units);
-    const goalReached = config.weekly_goal > 0 && weekDistance >= config.weekly_goal;
+    const progress = weeklyGoalProgress(snapshot, config);
+    const goalReached = Boolean(progress?.reached);
 
     if (state.seen_activities === null) {
       // First refresh for this account: what already exists is not news.
@@ -271,7 +271,7 @@ export class StravaSync {
     if (goalReached && state.goal_reached_week !== snapshot.week.start) {
       await this.publishEvent(
         TRIGGERS.WEEKLY_GOAL_REACHED,
-        weeklyGoalEvent(weekDistance, snapshot.week.all.count, config),
+        weeklyGoalEvent(snapshot, progress, config),
       );
       patch.goal_reached_week = snapshot.week.start;
     }

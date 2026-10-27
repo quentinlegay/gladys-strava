@@ -48,9 +48,12 @@ Options :
 - **Intervalle de rafraîchissement** : fréquence de lecture de Strava, toutes
   les 15 minutes par défaut (5 minutes minimum, Strava limite le nombre de
   requêtes).
-- **Objectif de distance hebdomadaire** : tous sports confondus, en km (ou en
-  miles). Utilisé par le déclencheur « Objectif hebdo Strava atteint » et par
-  le widget ; 0 le désactive.
+- **Type d'objectif hebdomadaire** : un objectif de distance (km ou miles) ou
+  de temps actif (heures).
+- **Objectif hebdomadaire** : tous sports confondus, en km (ou en miles) pour
+  un objectif de distance, en heures pour un objectif de durée (ex. `4.5`).
+  Utilisé par le déclencheur « Objectif hebdo Strava atteint » et par le
+  widget ; 0 le désactive.
 
 ## 3. Notifications instantanées avec Gladys Plus (facultatif)
 
@@ -96,8 +99,9 @@ Déclencheurs :
   `average_speed`, `pr_count`, `activity_id` et `url`.
 - **Record personnel Strava** — une nouvelle activité a battu au moins un de
   vos records (`name`, `sport`, `pr_count`, `url`...).
-- **Objectif hebdo Strava atteint** — la distance de la semaine a atteint
-  votre objectif, une fois par semaine (`week_distance`, `goal`,
+- **Objectif hebdo Strava atteint** — la distance ou le temps actif de la
+  semaine a atteint votre objectif, une fois par semaine (`goal_type` =
+  `distance` ou `time`, `goal`, `goal_unit`, `week_distance`, `week_hours`,
   `week_activities`).
 
 Chaque activité n'est annoncée qu'une fois, même après un redémarrage ; les

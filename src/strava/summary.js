@@ -4,7 +4,7 @@
 // system the user chose. No I/O here: everything is unit-tested.
 // -----------------------------------------------------------------------------
 
-import { UNITS } from '../config.js';
+import { GOAL_TYPES, UNITS } from '../config.js';
 
 // Strava `sport_type` values grouped the way its own totals are (run, ride,
 // swim), plus walk, and `other` for everything else (workouts, ski...).
@@ -125,6 +125,11 @@ export function toSpeed(metersPerSecond, units) {
 /** Seconds -> whole minutes. */
 export function toMinutes(seconds) {
   return Math.round((Number(seconds) || 0) / 60);
+}
+
+/** Seconds -> hours, 2 decimals. */
+export function toHours(seconds) {
+  return round((Number(seconds) || 0) / 3600, 2);
 }
 
 export function distanceUnit(units) {
@@ -321,4 +326,33 @@ export function periodTotals(snapshot, period, sport) {
     return snapshot.week[sport] ?? { ...EMPTY_TOTALS };
   }
   return snapshot.totals[period]?.[sport] ?? { ...EMPTY_TOTALS };
+}
+
+/**
+ * Progress of the week toward the weekly goal of the configuration, `null`
+ * without goal. A distance goal is in km or miles, a time goal in hours of
+ * moving time; both count all sports together.
+ */
+export function weeklyGoalProgress(snapshot, config) {
+  if (!(config.weekly_goal > 0)) {
+    return null;
+  }
+  const week = snapshot.week.all;
+  if (config.weekly_goal_type === GOAL_TYPES.TIME) {
+    return {
+      type: GOAL_TYPES.TIME,
+      value: toHours(week.moving_time),
+      goal: config.weekly_goal,
+      unit: 'h',
+      reached: week.moving_time >= config.weekly_goal * 3600,
+    };
+  }
+  const distance = toDistance(week.distance, config.units);
+  return {
+    type: GOAL_TYPES.DISTANCE,
+    value: distance,
+    goal: config.weekly_goal,
+    unit: distanceUnit(config.units),
+    reached: distance >= config.weekly_goal,
+  };
 }

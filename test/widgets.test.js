@@ -26,6 +26,17 @@ test('the weekly summary is rendered exactly as sent', async (t) => {
   assert.equal(status.items[0].color, 'success');
 });
 
+test('the weekly summary shows a time goal in hours', async (t) => {
+  const { gladys } = await setup(t, {
+    config: linkedConfig({ weekly_goal_type: 'time', weekly_goal: 4 }),
+  });
+  const content = await getContent(gladys, WIDGET_KEYS.WEEKLY_SUMMARY);
+  assert.deepEqual(validateWidgetContent(content), []);
+  const status = content.components.find((c) => c.type === 'status');
+  assert.equal(status.items[0].value, '2h22 / 4 h');
+  assert.equal(status.items[0].color, 'info');
+});
+
 test('the weekly summary in imperial units, with a failing Strava', async (t) => {
   const { gladys, strava, ctx } = await setup(t, { config: linkedConfig({ units: 'imperial' }) });
   strava.failNext(429);

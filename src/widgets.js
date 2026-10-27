@@ -16,7 +16,7 @@
 // -----------------------------------------------------------------------------
 
 import { createLogger, WIDGET_COLORS } from '@gladysassistant/integration-sdk';
-import { isLinked } from './config.js';
+import { GOAL_TYPES, isLinked } from './config.js';
 import {
   activityUrl,
   athleteUrl,
@@ -28,6 +28,7 @@ import {
   toDistance,
   toElevation,
   toSpeed,
+  weeklyGoalProgress,
 } from './strava/summary.js';
 
 const logger = createLogger({ name: 'widgets' });
@@ -108,17 +109,21 @@ function errorRow(error) {
 }
 
 function goalRow(snapshot, config) {
-  if (!(config.weekly_goal > 0)) {
+  const progress = weeklyGoalProgress(snapshot, config);
+  if (!progress) {
     return [];
   }
-  const distance = toDistance(snapshot.week.all.distance, config.units);
-  const reached = distance >= config.weekly_goal;
+  // A time goal shows the moving time as the "Moving time" tile does.
+  const done =
+    progress.type === GOAL_TYPES.TIME
+      ? formatDuration(snapshot.week.all.moving_time)
+      : progress.value;
   return [
     {
       label: { en: 'Weekly goal', fr: 'Objectif hebdo', de: 'Wochenziel', es: 'Objetivo semanal' },
       icon: 'target',
-      value: `${distance} / ${config.weekly_goal} ${distanceUnit(config.units)}`,
-      color: reached ? WIDGET_COLORS.SUCCESS : WIDGET_COLORS.INFO,
+      value: `${done} / ${progress.goal} ${progress.unit}`,
+      color: progress.reached ? WIDGET_COLORS.SUCCESS : WIDGET_COLORS.INFO,
     },
   ];
 }

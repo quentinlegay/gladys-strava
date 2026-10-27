@@ -24,7 +24,7 @@ from the official
 | Scene triggers      | `new_activity` (filter by sport), `personal_record`, `weekly_goal_reached`                                                                                |
 | Scene actions       | `sync_now`, `get_stats` (week, 4 weeks, year, all time × sport), `get_last_activity`                                                                      |
 | Dashboard widgets   | `weekly_summary` (tiles, 7-day chart, goal, sync button), `recent_activities` (latest activities, sport filter, links)                                    |
-| Configuration       | Actions "Test the connection", "Synchronize now", "Unlink the Strava account"; units metric/imperial; refresh interval; weekly distance goal              |
+| Configuration       | Actions "Test the connection", "Synchronize now", "Unlink the Strava account"; units metric/imperial; refresh interval; weekly goal (distance or time)    |
 | Webhooks (optional) | With Gladys Plus, a Strava push subscription announces new activities within seconds                                                                      |
 | Transport badge     | `cloud`, orange dot when the Strava rate limit is hit, `unreachable` when Strava refuses the access                                                       |
 

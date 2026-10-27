@@ -164,19 +164,51 @@
       "max": 240
     },
     {
+      "key": "weekly_goal_type",
+      "type": "select",
+      "label": {
+        "en": "Weekly goal type",
+        "fr": "Type d'objectif hebdomadaire",
+        "de": "Art des Wochenziels",
+        "es": "Tipo de objetivo semanal"
+      },
+      "required": false,
+      "default": "distance",
+      "options": [
+        {
+          "value": "distance",
+          "label": {
+            "en": "Distance (km or mi)",
+            "fr": "Distance (km ou mi)",
+            "de": "Distanz (km oder mi)",
+            "es": "Distancia (km o mi)"
+          }
+        },
+        {
+          "value": "time",
+          "label": {
+            "en": "Moving time (hours)",
+            "fr": "Temps actif (heures)",
+            "de": "Bewegungszeit (Stunden)",
+            "es": "Tiempo activo (horas)"
+          }
+        }
+      ]
+    },
+    {
       "key": "weekly_goal",
       "type": "number",
       "label": {
-        "en": "Weekly distance goal",
-        "fr": "Objectif de distance hebdomadaire",
-        "de": "Wöchentliches Distanzziel",
-        "es": "Objetivo de distancia semanal"
+        "en": "Weekly goal",
+        "fr": "Objectif hebdomadaire",
+        "de": "Wochenziel",
+        "es": "Objetivo semanal"
       },
       "description": {
-        "en": "In km (or miles in imperial units), all sports together. 0 disables the goal.",
-        "fr": "En km (ou en miles en unités impériales), tous sports confondus. 0 désactive l'objectif.",
-        "de": "In km (oder Meilen bei imperialen Einheiten), alle Sportarten zusammen. 0 deaktiviert das Ziel.",
-        "es": "En km (o millas en unidades imperiales), todos los deportes juntos. 0 desactiva el objetivo."
+        "en": "In km (or miles in imperial units) for a distance goal, in hours for a time goal, all sports together. 0 disables the goal.",
+        "fr": "En km (ou en miles en unités impériales) pour un objectif de distance, en heures pour un objectif de durée, tous sports confondus. 0 désactive l'objectif.",
+        "de": "In km (oder Meilen bei imperialen Einheiten) für ein Distanzziel, in Stunden für ein Zeitziel, alle Sportarten zusammen. 0 deaktiviert das Ziel.",
+        "es": "En km (o millas en unidades imperiales) para un objetivo de distancia, en horas para un objetivo de tiempo, todos los deportes juntos. 0 desactiva el objetivo."
       },
       "placeholder": {
         "en": "e.g. 50",
@@ -566,20 +598,20 @@
         "es": "Objetivo semanal de Strava alcanzado"
       },
       "description": {
-        "en": "The distance of the week reached the goal set in the configuration (once a week).",
-        "fr": "La distance de la semaine a atteint l'objectif de la configuration (une fois par semaine).",
-        "de": "Die Distanz der Woche hat das in der Konfiguration festgelegte Ziel erreicht (einmal pro Woche).",
-        "es": "La distancia de la semana ha alcanzado el objetivo de la configuración (una vez por semana)."
+        "en": "The distance or the moving time of the week reached the goal set in the configuration (once a week).",
+        "fr": "La distance ou le temps actif de la semaine a atteint l'objectif de la configuration (une fois par semaine).",
+        "de": "Die Distanz oder die Bewegungszeit der Woche hat das in der Konfiguration festgelegte Ziel erreicht (einmal pro Woche).",
+        "es": "La distancia o el tiempo activo de la semana ha alcanzado el objetivo de la configuración (una vez por semana)."
       },
       "variables": [
         {
-          "key": "week_distance",
-          "type": "number",
+          "key": "goal_type",
+          "type": "string",
           "label": {
-            "en": "Distance this week",
-            "fr": "Distance de la semaine",
-            "de": "Distanz dieser Woche",
-            "es": "Distancia de esta semana"
+            "en": "Goal type (distance or time)",
+            "fr": "Type d'objectif (distance ou time)",
+            "de": "Zielart (distance oder time)",
+            "es": "Tipo de objetivo (distance o time)"
           }
         },
         {
@@ -593,6 +625,26 @@
           }
         },
         {
+          "key": "goal_unit",
+          "type": "string",
+          "label": {
+            "en": "Goal unit",
+            "fr": "Unité de l'objectif",
+            "de": "Einheit des Ziels",
+            "es": "Unidad del objetivo"
+          }
+        },
+        {
+          "key": "week_distance",
+          "type": "number",
+          "label": {
+            "en": "Distance this week",
+            "fr": "Distance de la semaine",
+            "de": "Distanz dieser Woche",
+            "es": "Distancia de esta semana"
+          }
+        },
+        {
           "key": "distance_unit",
           "type": "string",
           "label": {
@@ -600,6 +652,16 @@
             "fr": "Unité de distance",
             "de": "Distanzeinheit",
             "es": "Unidad de distancia"
+          }
+        },
+        {
+          "key": "week_hours",
+          "type": "number",
+          "label": {
+            "en": "Moving time this week (hours)",
+            "fr": "Temps actif de la semaine (heures)",
+            "de": "Bewegungszeit dieser Woche (Stunden)",
+            "es": "Tiempo activo de esta semana (horas)"
           }
         },
         {
